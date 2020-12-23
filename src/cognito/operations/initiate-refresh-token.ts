@@ -1,7 +1,9 @@
 import { cognitoFetch } from "../cognito-fetch";
 import { guardRefreshResult, TCallParams } from "../types";
 
-type TInitiateRefreshTokenParams = TCallParams & { REFRESH_TOKEN: string };
+type TInitiateRefreshTokenParams = Omit<TCallParams, "USERNAME"> & {
+  REFRESH_TOKEN: string;
+};
 
 export const initiateRefreshToken = async ({
   REGION,

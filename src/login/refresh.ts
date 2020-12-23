@@ -9,7 +9,6 @@ export const loginWithRefreshToken = async (
   initiateRefreshToken({
     REGION: poolParams.REGION,
     CLIENT_ID: poolParams.CLIENT_ID,
-    USERNAME: "", // TODO this is nasty
     DEVICE_KEY: deviceParams?.key,
     REFRESH_TOKEN: refreshToken,
   });
