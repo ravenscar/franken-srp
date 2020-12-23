@@ -1,0 +1,19 @@
+{
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"],
+  "compilerOptions": {
+    "strict": true,
+    "module": "commonjs",
+    "declaration": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "composite": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["ES2017", "DOM", "ESNext.BigInt"],
+    "target": "ES2017",
+    "types": ["jest"],
+    "noErrorTruncation": true
+  }
+}

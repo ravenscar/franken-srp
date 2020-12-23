@@ -1,0 +1,1 @@
+Library to facilitate SRP login with AWS Cognito User Pools 
