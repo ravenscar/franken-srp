@@ -1,19 +1,14 @@
 import {
-  TCognitoOperation,
-  TCognitoFetchOptions,
   TChallengeName,
   TSRPChallengeParameters,
   TRespondToAuthChallengeParams,
-} from "./types";
-
-import {
   guardInitiateUserSrpResponse,
   guardInitiateDeviceSrpResponse,
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardRefreshResult,
   guardSoftwareTokenMfaResponse,
-} from "./guards";
+} from "./types";
 
 import { cognitoFetch } from "./cognito-fetch";
 

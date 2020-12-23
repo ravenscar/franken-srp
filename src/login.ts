@@ -13,14 +13,12 @@ import {
   TUserPoolParams,
   TLoginParams,
   TDeviceParams,
-} from "./cognito/types";
-
-import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardSoftwareTokenMfaResponse,
-} from "./cognito/guards";
-import { calculateClaimSig, makeDeviceVerifier, makeSrpSession } from "./srp";
+} from "./cognito/types";
+
+import { calculateClaimSig, makeSrpSession } from "./srp";
 
 type TSrpConfirmation = {
   a: bigint;

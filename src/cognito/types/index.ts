@@ -1,12 +1,8 @@
-export type TCognitoOperation =
-  | "InitiateAuth"
-  | "RespondToAuthChallenge"
-  | "ConfirmDevice"
-  | "GetUser"
-  | "ListDevices";
+export * from "./guards";
 
-export type TAuthFlowType = "USER_SRP_AUTH" | "REFRESH_TOKEN";
-export type TInitiateAuthParams = {
+type TAuthFlowType = "USER_SRP_AUTH" | "REFRESH_TOKEN";
+
+type TInitiateAuthParams = {
   USER_SRP_AUTH: {
     USERNAME: string;
     SRP_A: string;
@@ -17,17 +13,13 @@ export type TInitiateAuthParams = {
     DEVICE_KEY: string | undefined;
   };
 };
-export type TInitiateAuth<A extends TAuthFlowType> = {
+
+type TInitiateAuth<A extends TAuthFlowType> = {
   AuthFlow: A;
   ClientId: string;
   AuthParameters: TInitiateAuthParams[A];
 };
 
-export type TChallengeName =
-  | "PASSWORD_VERIFIER"
-  | "DEVICE_SRP_AUTH"
-  | "DEVICE_PASSWORD_VERIFIER"
-  | "SOFTWARE_TOKEN_MFA";
 export type TRespondToAuthChallengeParams = {
   PASSWORD_VERIFIER: {
     USERNAME: string;
@@ -35,10 +27,6 @@ export type TRespondToAuthChallengeParams = {
     PASSWORD_CLAIM_SECRET_BLOCK: string;
     PASSWORD_CLAIM_SIGNATURE: string;
     DEVICE_KEY: string | undefined;
-  };
-  SOFTWARE_TOKEN_MFA: {
-    USERNAME: string;
-    SOFTWARE_TOKEN_MFA_CODE: string;
   };
   DEVICE_SRP_AUTH: {
     USERNAME: string;
@@ -52,15 +40,20 @@ export type TRespondToAuthChallengeParams = {
     PASSWORD_CLAIM_SIGNATURE: string;
     DEVICE_KEY: string;
   };
+  SOFTWARE_TOKEN_MFA: {
+    USERNAME: string;
+    SOFTWARE_TOKEN_MFA_CODE: string;
+  };
 };
-export type TRespondToAuthChallenge<C extends TChallengeName> = {
+
+type TRespondToAuthChallenge<C extends TChallengeName> = {
   ChallengeName: C;
   ClientId: string;
   Session: string | undefined;
   ChallengeResponses: TRespondToAuthChallengeParams[C];
 };
 
-export type TCognitoFetchArgs = {
+type TCognitoFetchArgs = {
   InitiateAuth: TInitiateAuth<TAuthFlowType>;
   RespondToAuthChallenge: TRespondToAuthChallenge<TChallengeName>;
   ConfirmDevice: {
@@ -79,57 +72,25 @@ export type TCognitoFetchArgs = {
     AccessToken: string;
   };
 };
+
+export type TChallengeName =
+  | "PASSWORD_VERIFIER"
+  | "DEVICE_SRP_AUTH"
+  | "DEVICE_PASSWORD_VERIFIER"
+  | "SOFTWARE_TOKEN_MFA";
+
+export type TCognitoOperation =
+  | "InitiateAuth"
+  | "RespondToAuthChallenge"
+  | "ConfirmDevice"
+  | "GetUser"
+  | "ListDevices";
+
 export type TCognitoFetchOptions<O extends TCognitoOperation> = {
   operation: O;
   region: string;
   args: TCognitoFetchArgs[O];
 };
-
-export type TSRPChallengeParameters = {
-  SALT: string;
-  SECRET_BLOCK: string;
-  SRP_B: string;
-  USER_ID_FOR_SRP: string | undefined;
-  USERNAME: string;
-  DEVICE_KEY: string | undefined;
-};
-
-export type TInitiateUserSrpResponse = {
-  ChallengeName: "PASSWORD_VERIFIER";
-  ChallengeParameters: TSRPChallengeParameters;
-};
-
-export type TInitiateDeviceSrpResponse = {
-  ChallengeName: "DEVICE_PASSWORD_VERIFIER";
-  ChallengeParameters: TSRPChallengeParameters;
-};
-
-export type TNewDeviceMetadata = {
-  DeviceKey: string;
-  DeviceGroupKey: string;
-};
-
-export type TAuthenticationResult = {
-  ExpiresIn: number;
-  TokenType: string;
-  AccessToken: string;
-  RefreshToken: string;
-  IdToken: string;
-  NewDeviceMetadata?: TNewDeviceMetadata;
-};
-export type TAuthenticationResultResponse = {
-  AuthenticationResult: TAuthenticationResult;
-};
-
-export type TDeviceChallengeResponse = { ChallengeName: "DEVICE_SRP_AUTH" };
-
-export type TRefreshResult = {
-  ExpiresIn: number;
-  TokenType: string;
-  AccessToken: string;
-  IdToken: string;
-};
-export type TRefreshResultResponse = { AuthenticationResult: TRefreshResult };
 
 export type TUserPoolParams = Record<
   "REGION" | "USER_POOL_ID" | "CLIENT_ID",
