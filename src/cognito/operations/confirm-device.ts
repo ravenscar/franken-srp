@@ -6,6 +6,7 @@ import { TDeviceParams } from "../types";
 type TConfirmDeviceParams = Omit<TDeviceParams, "password"> & {
   accessToken: string;
   region: string;
+  deviceName?: string;
 };
 
 export const confirmDevice = async ({
@@ -13,6 +14,7 @@ export const confirmDevice = async ({
   accessToken,
   key,
   groupKey,
+  deviceName,
 }: TConfirmDeviceParams) => {
   const { salt, verifier, password } = await makeDeviceVerifier(groupKey, key);
 
@@ -22,13 +24,15 @@ export const confirmDevice = async ({
     args: {
       AccessToken: accessToken,
       DeviceKey: key,
-      DeviceName: navigator.userAgent,
+      DeviceName: deviceName || navigator.userAgent,
       DeviceSecretVerifierConfig: {
         Salt: hexToB64(padHex(salt)),
         PasswordVerifier: verifier,
       },
     },
   });
+
+  // TODO: this needs a guard for the response
 
   return {
     key,

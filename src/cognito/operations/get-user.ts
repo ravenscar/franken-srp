@@ -8,3 +8,5 @@ export const getUser = async ({ region, accessToken }: TGetUserParams) =>
     operation: "GetUser",
     args: { AccessToken: accessToken },
   });
+
+// TODO: this needs a guard for the response
