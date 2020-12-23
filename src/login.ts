@@ -65,10 +65,15 @@ export const srpConfirmation = async (
     challengeParameters
   );
 
-  return await respondPasswordVerifier(
-    { REGION, CLIENT_ID, DEVICE_KEY: deviceKey },
-    { timestamp, claimSig, challengeParameters, challengeName }
-  );
+  return await respondPasswordVerifier({
+    REGION,
+    CLIENT_ID,
+    DEVICE_KEY: deviceKey,
+    timestamp,
+    claimSig,
+    challengeParameters,
+    challengeName,
+  });
 };
 
 export const authenticateDevice = async (
@@ -76,15 +81,13 @@ export const authenticateDevice = async (
   deviceParams: TDeviceParams & { username: string }
 ) => {
   const { a, A } = await makeSrpSession();
-  const responseA = await respondDeviceSRPAuth(
-    {
-      REGION: poolParams.REGION,
-      CLIENT_ID: poolParams.CLIENT_ID,
-      USERNAME: deviceParams.username,
-      DEVICE_KEY: deviceParams.key,
-    },
-    { SRP_A: bigIntToHex(A) }
-  );
+  const responseA = await respondDeviceSRPAuth({
+    REGION: poolParams.REGION,
+    CLIENT_ID: poolParams.CLIENT_ID,
+    USERNAME: deviceParams.username,
+    DEVICE_KEY: deviceParams.key,
+    SRP_A: bigIntToHex(A),
+  });
 
   const responseB = await srpConfirmation(
     poolParams,
@@ -109,15 +112,13 @@ export const loginWithUsernamePassword = async (
   deviceParams: TDeviceParams | undefined
 ) => {
   const { a, A } = await makeSrpSession();
-  const responseA = await initiateUserSRPAuth(
-    {
-      REGION: poolParams.REGION,
-      CLIENT_ID: poolParams.CLIENT_ID,
-      USERNAME: loginParams.username,
-      DEVICE_KEY: deviceParams?.key,
-    },
-    { SRP_A: bigIntToHex(A) }
-  );
+  const responseA = await initiateUserSRPAuth({
+    REGION: poolParams.REGION,
+    CLIENT_ID: poolParams.CLIENT_ID,
+    USERNAME: loginParams.username,
+    DEVICE_KEY: deviceParams?.key,
+    SRP_A: bigIntToHex(A),
+  });
 
   let nextResponse = await srpConfirmation(poolParams, loginParams, {
     a,
@@ -135,16 +136,15 @@ export const loginWithUsernamePassword = async (
     if (!loginParams.mfaCode) {
       throw new Error("Missing MFA Code");
     }
-    nextResponse = await respondSoftwareTokenMfa(
-      { REGION: poolParams.REGION, CLIENT_ID: poolParams.CLIENT_ID },
-      {
-        ChallengeResponses: {
-          USERNAME: responseA.ChallengeParameters.USERNAME,
-          SOFTWARE_TOKEN_MFA_CODE: loginParams.mfaCode,
-        },
-        session: nextResponse.Session,
-      }
-    );
+    nextResponse = await respondSoftwareTokenMfa({
+      REGION: poolParams.REGION,
+      CLIENT_ID: poolParams.CLIENT_ID,
+      ChallengeResponses: {
+        USERNAME: responseA.ChallengeParameters.USERNAME,
+        SOFTWARE_TOKEN_MFA_CODE: loginParams.mfaCode,
+      },
+      session: nextResponse.Session,
+    });
   }
 
   if (guardDeviceChallengeResponse(nextResponse)) {
@@ -167,12 +167,10 @@ export const loginWithRefreshToken = async (
   { refreshToken }: { refreshToken: string },
   deviceParams: TDeviceParams | undefined
 ) =>
-  initiateRefreshToken(
-    {
-      REGION: poolParams.REGION,
-      CLIENT_ID: poolParams.CLIENT_ID,
-      USERNAME: "",
-      DEVICE_KEY: deviceParams?.key,
-    },
-    { REFRESH_TOKEN: refreshToken }
-  );
+  initiateRefreshToken({
+    REGION: poolParams.REGION,
+    CLIENT_ID: poolParams.CLIENT_ID,
+    USERNAME: "",
+    DEVICE_KEY: deviceParams?.key,
+    REFRESH_TOKEN: refreshToken,
+  });

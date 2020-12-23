@@ -3,14 +3,17 @@ import { hexToB64, padHex } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import { TDeviceParams } from "../types";
 
-export const confirmDevice = async (
-  region: string,
-  {
-    accessToken,
-    key,
-    groupKey,
-  }: Omit<TDeviceParams, "password"> & { accessToken: string }
-) => {
+type TConfirmDeviceParams = Omit<TDeviceParams, "password"> & {
+  accessToken: string;
+  region: string;
+};
+
+export const confirmDevice = async ({
+  region,
+  accessToken,
+  key,
+  groupKey,
+}: TConfirmDeviceParams) => {
   const { salt, verifier, password } = await makeDeviceVerifier(groupKey, key);
 
   await cognitoFetch({

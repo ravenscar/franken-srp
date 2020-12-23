@@ -5,16 +5,20 @@ import {
   TCallParams,
 } from "../types";
 
-export const respondSoftwareTokenMfa = async (
-  { REGION, CLIENT_ID }: Omit<TCallParams, "USERNAME" | "DEVICE_KEY">,
-  {
-    ChallengeResponses,
-    session,
-  }: {
-    ChallengeResponses: { USERNAME: string; SOFTWARE_TOKEN_MFA_CODE: string };
-    session: string;
-  }
-) => {
+type TRespondSoftwareTokenMfaParams = Omit<
+  TCallParams,
+  "USERNAME" | "DEVICE_KEY"
+> & {
+  ChallengeResponses: { USERNAME: string; SOFTWARE_TOKEN_MFA_CODE: string };
+  session: string;
+};
+
+export const respondSoftwareTokenMfa = async ({
+  REGION,
+  CLIENT_ID,
+  ChallengeResponses,
+  session,
+}: TRespondSoftwareTokenMfaParams) => {
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
     region: REGION,

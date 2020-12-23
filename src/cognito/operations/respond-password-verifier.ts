@@ -7,28 +7,37 @@ import {
   TSRPChallengeParameters,
 } from "../types";
 
-export const respondPasswordVerifier = async (
-  { REGION, CLIENT_ID, DEVICE_KEY }: Omit<TCallParams, "USERNAME">,
-  {
-    challengeName,
-    challengeParameters,
-    timestamp,
-    claimSig,
-  }: {
-    challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
-    challengeParameters: TSRPChallengeParameters;
-    timestamp: string;
-    claimSig: string;
+type TRespondPasswordVerifierParams = Omit<TCallParams, "USERNAME"> & {
+  challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
+  challengeParameters: TSRPChallengeParameters;
+  timestamp: string;
+  claimSig: string;
+};
+
+export const respondPasswordVerifier = async ({
+  REGION,
+  CLIENT_ID,
+  DEVICE_KEY,
+  challengeName,
+  challengeParameters,
+  timestamp,
+  claimSig,
+}: TRespondPasswordVerifierParams) => {
+  const devKey = DEVICE_KEY!;
+  if (challengeName === "DEVICE_PASSWORD_VERIFIER" && devKey) {
+    throw new Error(
+      "DEVICE_KEY must be passed for RespondToAuthChallenge: DEVICE_PASSWORD_VERIFIER"
+    );
   }
-) => {
+
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
     region: REGION,
     args: {
-      ChallengeName: "PASSWORD_VERIFIER",
+      ChallengeName: challengeName,
       ClientId: CLIENT_ID,
       ChallengeResponses: {
-        DEVICE_KEY,
+        DEVICE_KEY: devKey,
         USERNAME:
           challengeParameters.USER_ID_FOR_SRP || challengeParameters.USERNAME,
         PASSWORD_CLAIM_SECRET_BLOCK: challengeParameters.SECRET_BLOCK,

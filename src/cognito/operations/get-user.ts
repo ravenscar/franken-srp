@@ -1,6 +1,8 @@
 import { cognitoFetch } from "../cognito-fetch";
 
-export const getUser = async (region: string, accessToken: string) =>
+type TGetUserParams = { region: string; accessToken: string };
+
+export const getUser = async ({ region, accessToken }: TGetUserParams) =>
   await cognitoFetch({
     region,
     operation: "GetUser",

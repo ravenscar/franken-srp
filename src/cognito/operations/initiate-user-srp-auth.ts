@@ -1,10 +1,15 @@
 import { cognitoFetch } from "../cognito-fetch";
 import { guardInitiateUserSrpResponse, TCallParams } from "../types";
 
-export const initiateUserSRPAuth = async (
-  { USERNAME, REGION, CLIENT_ID, DEVICE_KEY }: TCallParams,
-  { SRP_A }: { SRP_A: string }
-) => {
+type TInitiateUserSRPAuthParams = TCallParams & { SRP_A: string };
+
+export const initiateUserSRPAuth = async ({
+  USERNAME,
+  REGION,
+  CLIENT_ID,
+  DEVICE_KEY,
+  SRP_A,
+}: TInitiateUserSRPAuthParams) => {
   const response = await cognitoFetch({
     operation: "InitiateAuth",
     region: REGION,

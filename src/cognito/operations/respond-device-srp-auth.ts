@@ -1,10 +1,15 @@
 import { cognitoFetch } from "../cognito-fetch";
 import { guardInitiateDeviceSrpResponse, TCallParams } from "../types";
 
-export const respondDeviceSRPAuth = async (
-  { USERNAME, REGION, CLIENT_ID, DEVICE_KEY }: TCallParams,
-  { SRP_A }: { SRP_A: string }
-) => {
+type TRespondDeviceSRPAuthParams = TCallParams & { SRP_A: string };
+
+export const respondDeviceSRPAuth = async ({
+  USERNAME,
+  REGION,
+  CLIENT_ID,
+  DEVICE_KEY,
+  SRP_A,
+}: TRespondDeviceSRPAuthParams) => {
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
     region: REGION,
