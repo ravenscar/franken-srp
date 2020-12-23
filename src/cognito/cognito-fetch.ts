@@ -13,21 +13,6 @@ export const cognitoFetch = async <O extends TCognitoOperation>({
     "X-Amz-User-Agent": "amazon",
   };
 
-  console.log(`fetching: ${endpoint}`);
-  console.log(
-    JSON.stringify(
-      {
-        headers,
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: JSON.stringify(args),
-      },
-      null,
-      2
-    )
-  );
-
   const response = await fetch(endpoint, {
     headers,
     method: "POST",
@@ -37,10 +22,7 @@ export const cognitoFetch = async <O extends TCognitoOperation>({
   });
 
   if (response.ok) {
-    const json = await response.json();
-    console.log("response:");
-    console.log(JSON.stringify(json, null, 2));
-    return json;
+    return response.json();
   }
 
   let errorText = `Fetch failed: status: ${response.status} ${response.statusText}`;
