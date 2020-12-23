@@ -5,15 +5,11 @@ export type TCognitoOperation =
   | "GetUser"
   | "ListDevices";
 
-export type TAuthFlowType = "USER_SRP_AUTH" | "REFRESH_TOKEN" | "CUSTOM_AUTH";
+export type TAuthFlowType = "USER_SRP_AUTH" | "REFRESH_TOKEN";
 export type TInitiateAuthParams = {
   USER_SRP_AUTH: {
     USERNAME: string;
     SRP_A: string;
-    DEVICE_KEY: string | undefined;
-  };
-  CUSTOM_AUTH: {
-    USERNAME: string;
     DEVICE_KEY: string | undefined;
   };
   REFRESH_TOKEN: {
@@ -29,7 +25,6 @@ export type TInitiateAuth<A extends TAuthFlowType> = {
 
 export type TChallengeName =
   | "PASSWORD_VERIFIER"
-  | "CUSTOM_CHALLENGE"
   | "DEVICE_SRP_AUTH"
   | "DEVICE_PASSWORD_VERIFIER"
   | "SOFTWARE_TOKEN_MFA";
@@ -44,11 +39,6 @@ export type TRespondToAuthChallengeParams = {
   SOFTWARE_TOKEN_MFA: {
     USERNAME: string;
     SOFTWARE_TOKEN_MFA_CODE: string;
-  };
-  CUSTOM_CHALLENGE: {
-    USERNAME: string;
-    ANSWER: string;
-    DEVICE_KEY: string | undefined;
   };
   DEVICE_SRP_AUTH: {
     USERNAME: string;
