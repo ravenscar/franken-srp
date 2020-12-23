@@ -15,7 +15,7 @@ type TSrpConfirmation = {
   deviceGroupKey: string | undefined;
 };
 
-export const srpConfirmation = async (
+export const verifySrp = async (
   { REGION, USER_POOL_ID, CLIENT_ID }: TUserPoolParams,
   { password }: Omit<TLoginParams, "username">,
   {

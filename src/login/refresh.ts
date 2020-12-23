@@ -1,7 +1,7 @@
 import { initiateRefreshToken } from "../cognito";
 import { TDeviceParams, TUserPoolParams } from "../cognito/types";
 
-export const loginWithRefreshToken = async (
+export const refresh = async (
   poolParams: TUserPoolParams,
   { refreshToken }: { refreshToken: string },
   deviceParams: TDeviceParams | undefined

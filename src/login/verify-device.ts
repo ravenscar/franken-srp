@@ -6,9 +6,9 @@ import {
 } from "../cognito/types";
 import { makeSrpSession } from "../srp";
 import { bigIntToHex } from "../util";
-import { srpConfirmation } from "./srp-confirmation";
+import { verifySrp } from "./verify-srp";
 
-export const authenticateDevice = async (
+export const verifyDevice = async (
   poolParams: TUserPoolParams,
   deviceParams: TDeviceParams & { username: string }
 ) => {
@@ -21,7 +21,7 @@ export const authenticateDevice = async (
     SRP_A: bigIntToHex(A),
   });
 
-  const responseB = await srpConfirmation(
+  const responseB = await verifySrp(
     poolParams,
     { password: deviceParams.password },
     {

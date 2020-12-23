@@ -1,2 +1,2 @@
-export { getUser, confirmDevice } from "./cognito";
-export { loginWithUsernamePassword, loginWithRefreshToken } from "./login";
+export { getUser } from "./cognito";
+export { startSRP, refresh, setupDevice } from "./login";

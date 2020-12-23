@@ -9,10 +9,10 @@ import {
 } from "../cognito/types";
 import { makeSrpSession } from "../srp";
 import { bigIntToHex } from "../util";
-import { authenticateDevice } from "./authenticate-device";
-import { srpConfirmation } from "./srp-confirmation";
+import { verifyDevice } from "./verify-device";
+import { verifySrp } from "./verify-srp";
 
-export const loginWithUsernamePassword = async (
+export const startSRP = async (
   poolParams: TUserPoolParams,
   loginParams: TLoginParams & { mfaCode?: string },
   deviceParams: TDeviceParams | undefined
@@ -26,7 +26,7 @@ export const loginWithUsernamePassword = async (
     SRP_A: bigIntToHex(A),
   });
 
-  let nextResponse = await srpConfirmation(poolParams, loginParams, {
+  let nextResponse = await verifySrp(poolParams, loginParams, {
     a,
     challengeName: responseA.ChallengeName,
     challengeParameters: responseA.ChallengeParameters,
@@ -57,7 +57,7 @@ export const loginWithUsernamePassword = async (
     if (!deviceParams) {
       throw new Error("missing deviceParams");
     }
-    return authenticateDevice(poolParams, {
+    return verifyDevice(poolParams, {
       ...deviceParams,
       username:
         responseA.ChallengeParameters.USER_ID_FOR_SRP ||
