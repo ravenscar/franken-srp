@@ -2,7 +2,7 @@ export const cognitoFetch = async ({
   operation,
   region,
   args,
-}: TCognitoFetchOptions) => {
+}: TCognitoFetchArgs & { region: string }) => {
   const endpoint = `https://cognito-idp.${region}.amazonaws.com/`;
 
   const headers = {
@@ -125,7 +125,3 @@ type TCognitoFetchArgs =
         AccessToken: string;
       };
     };
-
-type TCognitoFetchOptions = TCognitoFetchArgs & {
-  region: string;
-};

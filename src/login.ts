@@ -1,9 +1,9 @@
 import {
-  initiateUserSRP,
-  initiateDeviceSRP,
-  sendPasswordClaim,
-  sendTokenMfaCode,
-  sendRefreshToken,
+  initiateUserSRPAuth,
+  respondDeviceSRPAuth,
+  respondPasswordVerifier,
+  respondSoftwareTokenMfa,
+  initiateRefreshToken,
 } from "./cognito";
 import { bigIntToHex } from "./util";
 
@@ -65,7 +65,7 @@ export const srpConfirmation = async (
     challengeParameters
   );
 
-  return await sendPasswordClaim(
+  return await respondPasswordVerifier(
     { REGION, CLIENT_ID, DEVICE_KEY: deviceKey },
     { timestamp, claimSig, challengeParameters, challengeName }
   );
@@ -76,7 +76,7 @@ export const authenticateDevice = async (
   deviceParams: TDeviceParams & { username: string }
 ) => {
   const { a, A } = await makeSrpSession();
-  const responseA = await initiateDeviceSRP(
+  const responseA = await respondDeviceSRPAuth(
     {
       REGION: poolParams.REGION,
       CLIENT_ID: poolParams.CLIENT_ID,
@@ -109,7 +109,7 @@ export const loginWithUsernamePassword = async (
   deviceParams: TDeviceParams | undefined
 ) => {
   const { a, A } = await makeSrpSession();
-  const responseA = await initiateUserSRP(
+  const responseA = await initiateUserSRPAuth(
     {
       REGION: poolParams.REGION,
       CLIENT_ID: poolParams.CLIENT_ID,
@@ -135,7 +135,7 @@ export const loginWithUsernamePassword = async (
     if (!loginParams.mfaCode) {
       throw new Error("Missing MFA Code");
     }
-    nextResponse = await sendTokenMfaCode(
+    nextResponse = await respondSoftwareTokenMfa(
       { REGION: poolParams.REGION, CLIENT_ID: poolParams.CLIENT_ID },
       {
         ChallengeResponses: {
@@ -167,7 +167,7 @@ export const loginWithRefreshToken = async (
   { refreshToken }: { refreshToken: string },
   deviceParams: TDeviceParams | undefined
 ) =>
-  sendRefreshToken(
+  initiateRefreshToken(
     {
       REGION: poolParams.REGION,
       CLIENT_ID: poolParams.CLIENT_ID,

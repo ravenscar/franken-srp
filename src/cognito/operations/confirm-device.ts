@@ -1,10 +1,10 @@
-import { makeDeviceVerifier } from "../srp";
-import { hexToB64, padHex } from "../util";
-import { cognitoFetch } from "./cognito-fetch";
-import { TDeviceParams, TUserPoolParams } from "./types";
+import { makeDeviceVerifier } from "../../srp";
+import { hexToB64, padHex } from "../../util";
+import { cognitoFetch } from "../cognito-fetch";
+import { TDeviceParams } from "../types";
 
 export const confirmDevice = async (
-  poolParams: TUserPoolParams,
+  region: string,
   {
     accessToken,
     key,
@@ -14,8 +14,8 @@ export const confirmDevice = async (
   const { salt, verifier, password } = await makeDeviceVerifier(groupKey, key);
 
   await cognitoFetch({
+    region,
     operation: "ConfirmDevice",
-    region: poolParams.REGION,
     args: {
       AccessToken: accessToken,
       DeviceKey: key,

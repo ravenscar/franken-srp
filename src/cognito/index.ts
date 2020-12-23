@@ -1,3 +1,2 @@
-export * from "./cognito";
-export * from "./cognito-fetch";
-export * from "./confirm-device";
+export * from "./cognito-fetch"; // PDN TODO: don't export this
+export * from "./operations";
