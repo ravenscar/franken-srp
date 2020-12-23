@@ -1,1 +1,1 @@
-export * from "./subtleCrypto";
+export * from "./subtle-crypto-wrapper";
