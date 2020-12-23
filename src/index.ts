@@ -1,3 +1,2 @@
-export { cognitoFetch } from "./cognito/cognito-fetch";
-export { confirmDevice } from "./cognito/confirm-device";
+export { cognitoFetch, confirmDevice } from "./cognito";
 export { loginWithUsernamePassword, loginWithRefreshToken } from "./login";
