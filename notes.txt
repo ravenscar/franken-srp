@@ -1,0 +1,23 @@
+Hey futute me!
+
+Did you have a good holiday? It doesn't matter, it's time to get back to the fucking horror of cognito.
+
+This codebase has been cleaned up somewhat, there are a few TODO to search for, and there are some outstanding problems:
+
+1. testing
+  - there is no nice way of testing this, I suggest making a bunch of variant idp with aws-cdk and then calling them with the library.
+  - this means integration tests, which is gross but due to the lack of spec for the aws calls I see no way around it
+  - apart from the converters, I am not sure what can be unit tested here because
+    - window.fetch is polyfilled
+    - window.crypto parts are polyfilled
+    - there is not enough api spec from aws to spec the guards or operations
+
+2. the login folder still needs a lot of work
+  - we need an orchestrator for the login flow.
+    - generators are ugly but I think we should put one here, it should yield the responses (which can be guarded) for MFA / retries / device confirmation
+      - in the simple case it will yield tokens, but it can also be used to orchestrate MFA, and device/user confirmations.
+  - all guarding should be pulled out of the modules here and placed in the generator since it needs to know where to go later
+    - we probably need input guards too, unless we can use TS types, in anycase they should be super simple (MFA codes or booleans)
+  - the calls should be standardised to an object like the operations
+
+  
