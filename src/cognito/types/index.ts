@@ -20,42 +20,51 @@ type TInitiateAuth<A extends TAuthFlowType> = {
   AuthParameters: TInitiateAuthParams[A];
 };
 
-export type TRespondToAuthChallengeParams = {
-  PASSWORD_VERIFIER: {
-    USERNAME: string;
-    TIMESTAMP: string;
-    PASSWORD_CLAIM_SECRET_BLOCK: string;
-    PASSWORD_CLAIM_SIGNATURE: string;
-    DEVICE_KEY: string | undefined;
-  };
-  DEVICE_SRP_AUTH: {
-    USERNAME: string;
-    SRP_A: string;
-    DEVICE_KEY: string | undefined;
-  };
-  DEVICE_PASSWORD_VERIFIER: {
-    USERNAME: string;
-    TIMESTAMP: string;
-    PASSWORD_CLAIM_SECRET_BLOCK: string;
-    PASSWORD_CLAIM_SIGNATURE: string;
-    DEVICE_KEY: string;
-  };
-  SOFTWARE_TOKEN_MFA: {
-    USERNAME: string;
-    SOFTWARE_TOKEN_MFA_CODE: string;
-  };
-};
+type TRespondToAuthChallengeParams =
+  | {
+      ChallengeName: "PASSWORD_VERIFIER";
+      ChallengeResponses: {
+        USERNAME: string;
+        TIMESTAMP: string;
+        PASSWORD_CLAIM_SECRET_BLOCK: string;
+        PASSWORD_CLAIM_SIGNATURE: string;
+        DEVICE_KEY: string | undefined;
+      };
+    }
+  | {
+      ChallengeName: "DEVICE_SRP_AUTH";
+      ChallengeResponses: {
+        USERNAME: string;
+        SRP_A: string;
+        DEVICE_KEY: string | undefined;
+      };
+    }
+  | {
+      ChallengeName: "DEVICE_PASSWORD_VERIFIER";
+      ChallengeResponses: {
+        USERNAME: string;
+        TIMESTAMP: string;
+        PASSWORD_CLAIM_SECRET_BLOCK: string;
+        PASSWORD_CLAIM_SIGNATURE: string;
+        DEVICE_KEY: string;
+      };
+    }
+  | {
+      ChallengeName: "SOFTWARE_TOKEN_MFA";
+      ChallengeResponses: {
+        USERNAME: string;
+        SOFTWARE_TOKEN_MFA_CODE: string;
+      };
+    };
 
-type TRespondToAuthChallenge<C extends TChallengeName> = {
-  ChallengeName: C;
+type TRespondToAuthChallenge = TRespondToAuthChallengeParams & {
   ClientId: string;
   Session: string | undefined;
-  ChallengeResponses: TRespondToAuthChallengeParams[C];
 };
 
 type TCognitoFetchArgs = {
   InitiateAuth: TInitiateAuth<TAuthFlowType>;
-  RespondToAuthChallenge: TRespondToAuthChallenge<TChallengeName>;
+  RespondToAuthChallenge: TRespondToAuthChallenge;
   ConfirmDevice: {
     AccessToken: string;
     DeviceKey: string;
@@ -73,11 +82,7 @@ type TCognitoFetchArgs = {
   };
 };
 
-export type TChallengeName =
-  | "PASSWORD_VERIFIER"
-  | "DEVICE_SRP_AUTH"
-  | "DEVICE_PASSWORD_VERIFIER"
-  | "SOFTWARE_TOKEN_MFA";
+export type TChallengeName = TRespondToAuthChallengeParams["ChallengeName"];
 
 export type TCognitoOperation =
   | "InitiateAuth"

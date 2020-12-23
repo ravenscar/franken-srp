@@ -22,8 +22,7 @@ import { calculateClaimSig, makeSrpSession } from "./srp";
 
 type TSrpConfirmation = {
   a: bigint;
-  A: bigint;
-  challengeName: TChallengeName;
+  challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
   challengeParameters: TSRPChallengeParameters;
   deviceKey: string | undefined;
   deviceGroupKey: string | undefined;
@@ -44,7 +43,6 @@ export const srpConfirmation = async (
   { password }: Omit<TLoginParams, "username">,
   {
     a,
-    A,
     challengeName,
     challengeParameters,
     deviceKey,
@@ -94,7 +92,6 @@ export const authenticateDevice = async (
     { password: deviceParams.password },
     {
       a,
-      A,
       challengeName: responseA.ChallengeName,
       challengeParameters: responseA.ChallengeParameters,
       deviceKey: deviceParams.key,
@@ -125,7 +122,6 @@ export const loginWithUsernamePassword = async (
 
   let nextResponse = await srpConfirmation(poolParams, loginParams, {
     a,
-    A,
     challengeName: responseA.ChallengeName,
     challengeParameters: responseA.ChallengeParameters,
     deviceKey: deviceParams?.key,
@@ -143,7 +139,7 @@ export const loginWithUsernamePassword = async (
     nextResponse = await sendTokenMfaCode(
       { REGION: poolParams.REGION, CLIENT_ID: poolParams.CLIENT_ID },
       {
-        challengeParameters: {
+        ChallengeResponses: {
           USERNAME: responseA.ChallengeParameters.USERNAME,
           SOFTWARE_TOKEN_MFA_CODE: loginParams.mfaCode,
         },

@@ -1,7 +1,5 @@
 import {
-  TChallengeName,
   TSRPChallengeParameters,
-  TRespondToAuthChallengeParams,
   guardInitiateUserSrpResponse,
   guardInitiateDeviceSrpResponse,
   guardAuthenticationResultResponse,
@@ -93,10 +91,10 @@ export const sendRefreshToken = async (
 export const sendTokenMfaCode = async (
   { REGION, CLIENT_ID }: Omit<TCallParams, "USERNAME" | "DEVICE_KEY">,
   {
-    challengeParameters,
+    ChallengeResponses,
     session,
   }: {
-    challengeParameters: TRespondToAuthChallengeParams["SOFTWARE_TOKEN_MFA"];
+    ChallengeResponses: { USERNAME: string; SOFTWARE_TOKEN_MFA_CODE: string };
     session: string;
   }
 ) => {
@@ -106,11 +104,8 @@ export const sendTokenMfaCode = async (
     args: {
       ChallengeName: "SOFTWARE_TOKEN_MFA",
       ClientId: CLIENT_ID,
-      ChallengeResponses: {
-        USERNAME: challengeParameters.USERNAME,
-        SOFTWARE_TOKEN_MFA_CODE: challengeParameters.SOFTWARE_TOKEN_MFA_CODE,
-      },
       Session: session,
+      ChallengeResponses,
     },
   });
 
@@ -132,7 +127,7 @@ export const sendPasswordClaim = async (
     timestamp,
     claimSig,
   }: {
-    challengeName: TChallengeName;
+    challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
     challengeParameters: TSRPChallengeParameters;
     timestamp: string;
     claimSig: string;
@@ -142,7 +137,7 @@ export const sendPasswordClaim = async (
     operation: "RespondToAuthChallenge",
     region: REGION,
     args: {
-      ChallengeName: challengeName,
+      ChallengeName: "PASSWORD_VERIFIER",
       ClientId: CLIENT_ID,
       ChallengeResponses: {
         DEVICE_KEY,
