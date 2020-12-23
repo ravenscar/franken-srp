@@ -8,7 +8,6 @@ import {
 import { bigIntToHex } from "./util";
 
 import {
-  TChallengeName,
   TSRPChallengeParameters,
   TUserPoolParams,
   TLoginParams,
