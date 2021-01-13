@@ -14,11 +14,11 @@ export const verifyDevice = async (
 ) => {
   const { a, A } = await makeSrpSession();
   const responseA = await respondDeviceSRPAuth({
-    REGION: poolParams.REGION,
-    CLIENT_ID: poolParams.CLIENT_ID,
-    USERNAME: deviceParams.username,
-    DEVICE_KEY: deviceParams.key,
-    SRP_A: bigIntToHex(A),
+    region: poolParams.region,
+    clientId: poolParams.clientId,
+    username: deviceParams.username,
+    deviceKey: deviceParams.key,
+    srpA: bigIntToHex(A),
   });
 
   const responseB = await verifySrp(

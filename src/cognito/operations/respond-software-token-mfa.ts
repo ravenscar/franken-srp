@@ -7,26 +7,29 @@ import {
 
 type TRespondSoftwareTokenMfaParams = Omit<
   TCallParams,
-  "USERNAME" | "DEVICE_KEY"
+  "username" | "deviceKey"
 > & {
-  ChallengeResponses: { USERNAME: string; SOFTWARE_TOKEN_MFA_CODE: string };
+  challengeResponses: { username: string; mfaCode: string };
   session: string;
 };
 
 export const respondSoftwareTokenMfa = async ({
-  REGION,
-  CLIENT_ID,
-  ChallengeResponses,
+  region,
+  clientId,
+  challengeResponses,
   session,
 }: TRespondSoftwareTokenMfaParams) => {
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
-    region: REGION,
+    region: region,
     args: {
       ChallengeName: "SOFTWARE_TOKEN_MFA",
-      ClientId: CLIENT_ID,
+      ClientId: clientId,
       Session: session,
-      ChallengeResponses,
+      ChallengeResponses: {
+        USERNAME: challengeResponses.username,
+        SOFTWARE_TOKEN_MFA_CODE: challengeResponses.mfaCode,
+      },
     },
   });
 

@@ -7,7 +7,7 @@ import {
   TSRPChallengeParameters,
 } from "../types";
 
-type TRespondPasswordVerifierParams = Omit<TCallParams, "USERNAME"> & {
+type TRespondPasswordVerifierParams = Omit<TCallParams, "username"> & {
   challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
   challengeParameters: TSRPChallengeParameters;
   timestamp: string;
@@ -15,27 +15,27 @@ type TRespondPasswordVerifierParams = Omit<TCallParams, "USERNAME"> & {
 };
 
 export const respondPasswordVerifier = async ({
-  REGION,
-  CLIENT_ID,
-  DEVICE_KEY,
+  region,
+  clientId,
+  deviceKey,
   challengeName,
   challengeParameters,
   timestamp,
   claimSig,
 }: TRespondPasswordVerifierParams) => {
-  const devKey = DEVICE_KEY!;
+  const devKey = deviceKey!;
   if (challengeName === "DEVICE_PASSWORD_VERIFIER" && devKey) {
     throw new Error(
-      "DEVICE_KEY must be passed for RespondToAuthChallenge: DEVICE_PASSWORD_VERIFIER"
+      "deviceKey must be passed for RespondToAuthChallenge: DEVICE_PASSWORD_VERIFIER"
     );
   }
 
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
-    region: REGION,
+    region: region,
     args: {
       ChallengeName: challengeName,
-      ClientId: CLIENT_ID,
+      ClientId: clientId,
       ChallengeResponses: {
         DEVICE_KEY: devKey,
         USERNAME:

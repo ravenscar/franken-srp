@@ -7,8 +7,8 @@ export const refresh = async (
   deviceParams: TDeviceParams | undefined
 ) =>
   initiateRefreshToken({
-    REGION: poolParams.REGION,
-    CLIENT_ID: poolParams.CLIENT_ID,
-    DEVICE_KEY: deviceParams?.key,
-    REFRESH_TOKEN: refreshToken,
+    region: poolParams.region,
+    clientId: poolParams.clientId,
+    deviceKey: deviceParams?.key,
+    refreshToken: refreshToken,
   });

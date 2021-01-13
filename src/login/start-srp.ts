@@ -19,11 +19,11 @@ export const startSRP = async (
 ) => {
   const { a, A } = await makeSrpSession();
   const responseA = await initiateUserSRPAuth({
-    REGION: poolParams.REGION,
-    CLIENT_ID: poolParams.CLIENT_ID,
-    USERNAME: loginParams.username,
-    DEVICE_KEY: deviceParams?.key,
-    SRP_A: bigIntToHex(A),
+    region: poolParams.region,
+    clientId: poolParams.clientId,
+    username: loginParams.username,
+    deviceKey: deviceParams?.key,
+    srpA: bigIntToHex(A),
   });
 
   let nextResponse = await verifySrp(poolParams, loginParams, {
@@ -43,11 +43,11 @@ export const startSRP = async (
       throw new Error("Missing MFA Code");
     }
     nextResponse = await respondSoftwareTokenMfa({
-      REGION: poolParams.REGION,
-      CLIENT_ID: poolParams.CLIENT_ID,
-      ChallengeResponses: {
-        USERNAME: responseA.ChallengeParameters.USERNAME,
-        SOFTWARE_TOKEN_MFA_CODE: loginParams.mfaCode,
+      region: poolParams.region,
+      clientId: poolParams.clientId,
+      challengeResponses: {
+        username: responseA.ChallengeParameters.USERNAME,
+        mfaCode: loginParams.mfaCode,
       },
       session: nextResponse.Session,
     });

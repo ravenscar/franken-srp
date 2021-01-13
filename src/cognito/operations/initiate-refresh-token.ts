@@ -1,25 +1,25 @@
 import { cognitoFetch } from "../cognito-fetch";
 import { guardRefreshResult, TCallParams } from "../types";
 
-type TInitiateRefreshTokenParams = Omit<TCallParams, "USERNAME"> & {
-  REFRESH_TOKEN: string;
+type TInitiateRefreshTokenParams = Omit<TCallParams, "username"> & {
+  refreshToken: string;
 };
 
 export const initiateRefreshToken = async ({
-  REGION,
-  CLIENT_ID,
-  DEVICE_KEY,
-  REFRESH_TOKEN,
+  region,
+  clientId,
+  deviceKey,
+  refreshToken,
 }: TInitiateRefreshTokenParams) => {
   const response = await cognitoFetch({
     operation: "InitiateAuth",
-    region: REGION,
+    region,
     args: {
       AuthFlow: "REFRESH_TOKEN",
-      ClientId: CLIENT_ID,
+      ClientId: clientId,
       AuthParameters: {
-        REFRESH_TOKEN,
-        DEVICE_KEY,
+        REFRESH_TOKEN: refreshToken,
+        DEVICE_KEY: deviceKey,
       },
     },
   });

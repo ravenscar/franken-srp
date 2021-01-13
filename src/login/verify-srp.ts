@@ -16,7 +16,7 @@ type TSrpConfirmation = {
 };
 
 export const verifySrp = async (
-  { REGION, USER_POOL_ID, CLIENT_ID }: TUserPoolParams,
+  { region, userPoolId, clientId }: TUserPoolParams,
   { password }: Omit<TLoginParams, "username">,
   {
     a,
@@ -29,7 +29,7 @@ export const verifySrp = async (
   const groupId =
     challengeParameters.DEVICE_KEY && deviceGroupKey
       ? deviceGroupKey
-      : stripPoolRegion(USER_POOL_ID);
+      : stripPoolRegion(userPoolId);
   const userId =
     challengeParameters.DEVICE_KEY ||
     challengeParameters.USER_ID_FOR_SRP ||
@@ -44,9 +44,9 @@ export const verifySrp = async (
   );
 
   return await respondPasswordVerifier({
-    REGION,
-    CLIENT_ID,
-    DEVICE_KEY: deviceKey,
+    region,
+    clientId,
+    deviceKey,
     timestamp,
     claimSig,
     challengeParameters,
