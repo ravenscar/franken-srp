@@ -1,1 +1,5 @@
-export * from "./franken-srp";
+export {
+  calculateClaimSig,
+  makeDeviceVerifier,
+  makeSrpSession,
+} from "./franken-srp";
