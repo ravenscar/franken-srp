@@ -1,29 +1,33 @@
 import { makeDeviceVerifier } from "../../srp";
 import { hexToB64, padHex } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
-import { TDeviceParams } from "../types";
 
-type TConfirmDeviceParams = Omit<TDeviceParams, "password"> & {
+type TConfirmDeviceParams = {
   accessToken: string;
   region: string;
   deviceName?: string;
+  deviceKey: string;
+  deviceGroupKey: string;
 };
 
 export const confirmDevice = async ({
   region,
   accessToken,
-  key,
-  groupKey,
+  deviceKey,
+  deviceGroupKey,
   deviceName,
 }: TConfirmDeviceParams) => {
-  const { salt, verifier, password } = await makeDeviceVerifier(groupKey, key);
+  const { salt, verifier, password } = await makeDeviceVerifier(
+    deviceGroupKey,
+    deviceKey
+  );
 
   await cognitoFetch({
     region,
     operation: "ConfirmDevice",
     args: {
       AccessToken: accessToken,
-      DeviceKey: key,
+      DeviceKey: deviceKey,
       DeviceName: deviceName || navigator.userAgent,
       DeviceSecretVerifierConfig: {
         Salt: hexToB64(padHex(salt)),
@@ -35,8 +39,8 @@ export const confirmDevice = async ({
   // TODO: this needs a guard for the response
 
   return {
-    key,
-    groupKey,
-    password,
+    deviceKey,
+    deviceGroupKey,
+    devicePassword: password,
   };
 };

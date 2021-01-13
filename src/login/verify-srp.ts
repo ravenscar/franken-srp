@@ -1,13 +1,13 @@
 import { respondPasswordVerifier } from "../cognito";
-import {
-  TLoginParams,
-  TSRPChallengeParameters,
-  TUserPoolParams,
-} from "../cognito/types";
+import { TSRPChallengeParameters } from "../cognito/types";
 import { calculateClaimSig } from "../srp";
 import { stripPoolRegion } from "../util";
 
-type TSrpConfirmation = {
+type TVerifySrp = {
+  region: string;
+  userPoolId: string;
+  clientId: string;
+  password: string;
   a: bigint;
   challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
   challengeParameters: TSRPChallengeParameters;
@@ -15,17 +15,17 @@ type TSrpConfirmation = {
   deviceGroupKey: string | undefined;
 };
 
-export const verifySrp = async (
-  { region, userPoolId, clientId }: TUserPoolParams,
-  { password }: Omit<TLoginParams, "username">,
-  {
-    a,
-    challengeName,
-    challengeParameters,
-    deviceKey,
-    deviceGroupKey,
-  }: TSrpConfirmation
-) => {
+export const verifySrp = async ({
+  region,
+  userPoolId,
+  clientId,
+  password,
+  a,
+  challengeName,
+  challengeParameters,
+  deviceKey,
+  deviceGroupKey,
+}: TVerifySrp) => {
   const groupId =
     challengeParameters.DEVICE_KEY && deviceGroupKey
       ? deviceGroupKey

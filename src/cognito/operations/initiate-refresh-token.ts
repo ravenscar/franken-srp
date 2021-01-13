@@ -1,7 +1,10 @@
 import { cognitoFetch } from "../cognito-fetch";
-import { guardRefreshResult, TCallParams } from "../types";
+import { guardRefreshResult } from "../types";
 
-type TInitiateRefreshTokenParams = Omit<TCallParams, "username"> & {
+type TInitiateRefreshTokenParams = {
+  region: string;
+  clientId: string;
+  deviceKey?: string;
   refreshToken: string;
 };
 

@@ -3,35 +3,54 @@ import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardSoftwareTokenMfaResponse,
-  TDeviceParams,
-  TLoginParams,
-  TUserPoolParams,
 } from "../cognito/types";
 import { makeSrpSession } from "../srp";
 import { bigIntToHex } from "../util";
 import { verifyDevice } from "./verify-device";
 import { verifySrp } from "./verify-srp";
 
-export const startSRP = async (
-  poolParams: TUserPoolParams,
-  loginParams: TLoginParams & { mfaCode?: string },
-  deviceParams: TDeviceParams | undefined
-) => {
+type TStartSRP = {
+  region: string;
+  userPoolId: string;
+  clientId: string;
+  username: string;
+  password: string;
+  mfaCode?: string;
+  device?: {
+    key: string;
+    groupKey: string;
+    password: string;
+  };
+};
+
+export const startSRP = async ({
+  region,
+  userPoolId,
+  clientId,
+  username,
+  password,
+  mfaCode,
+  device,
+}: TStartSRP) => {
   const { a, A } = await makeSrpSession();
   const responseA = await initiateUserSRPAuth({
-    region: poolParams.region,
-    clientId: poolParams.clientId,
-    username: loginParams.username,
-    deviceKey: deviceParams?.key,
+    region,
+    clientId,
+    username,
+    deviceKey: device?.key,
     srpA: bigIntToHex(A),
   });
 
-  let nextResponse = await verifySrp(poolParams, loginParams, {
+  let nextResponse = await verifySrp({
+    region,
+    userPoolId,
+    clientId,
+    password,
     a,
     challengeName: responseA.ChallengeName,
     challengeParameters: responseA.ChallengeParameters,
-    deviceKey: deviceParams?.key,
-    deviceGroupKey: deviceParams?.groupKey,
+    deviceKey: device?.key,
+    deviceGroupKey: device?.groupKey,
   });
 
   if (guardAuthenticationResultResponse(nextResponse)) {
@@ -39,26 +58,31 @@ export const startSRP = async (
   }
 
   if (guardSoftwareTokenMfaResponse(nextResponse)) {
-    if (!loginParams.mfaCode) {
+    if (!mfaCode) {
       throw new Error("Missing MFA Code");
     }
     nextResponse = await respondSoftwareTokenMfa({
-      region: poolParams.region,
-      clientId: poolParams.clientId,
+      region,
+      clientId,
       challengeResponses: {
+        mfaCode,
         username: responseA.ChallengeParameters.USERNAME,
-        mfaCode: loginParams.mfaCode,
       },
       session: nextResponse.Session,
     });
   }
 
   if (guardDeviceChallengeResponse(nextResponse)) {
-    if (!deviceParams) {
+    if (!device) {
       throw new Error("missing deviceParams");
     }
-    return verifyDevice(poolParams, {
-      ...deviceParams,
+    return verifyDevice({
+      clientId,
+      region,
+      userPoolId,
+      deviceKey: device.key,
+      deviceGroupKey: device.groupKey,
+      password: device.password,
       username:
         responseA.ChallengeParameters.USER_ID_FOR_SRP ||
         responseA.ChallengeParameters.USERNAME,

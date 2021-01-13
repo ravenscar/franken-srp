@@ -3,11 +3,13 @@ import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardSoftwareTokenMfaResponse,
-  TCallParams,
   TSRPChallengeParameters,
 } from "../types";
 
-type TRespondPasswordVerifierParams = Omit<TCallParams, "username"> & {
+type TRespondPasswordVerifierParams = {
+  region: string;
+  clientId: string;
+  deviceKey?: string;
   challengeName: "DEVICE_PASSWORD_VERIFIER" | "PASSWORD_VERIFIER";
   challengeParameters: TSRPChallengeParameters;
   timestamp: string;

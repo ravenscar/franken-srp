@@ -2,13 +2,11 @@ import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
-  TCallParams,
 } from "../types";
 
-type TRespondSoftwareTokenMfaParams = Omit<
-  TCallParams,
-  "username" | "deviceKey"
-> & {
+type TRespondSoftwareTokenMfaParams = {
+  region: string;
+  clientId: string;
   challengeResponses: { username: string; mfaCode: string };
   session: string;
 };
