@@ -1,5 +1,5 @@
-export { srpLogin } from "./generator";
+export { srpLogin, guardAuthStep } from "./generator";
 export {
   initiateRefreshToken as refresh,
-  confirmDevice as setupDevice,
+  confirmDevice,
 } from "../cognito/operations";

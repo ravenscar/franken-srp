@@ -1,24 +1,9 @@
-import {
-  TNewDeviceMetadata,
-  guardNewDeviceMetadatata,
-} from "./guard-new-device-metadatata";
-
-export type TAuthenticationResult = {
-  ExpiresIn: number;
-  TokenType: string;
-  AccessToken: string;
-  RefreshToken: string;
-  IdToken: string;
-  NewDeviceMetadata?: TNewDeviceMetadata;
-};
-
-export type TAuthenticationResultResponse = {
-  AuthenticationResult: TAuthenticationResult;
-};
+import { TCognitoAuthenticationResultResponse } from "../authentication-result";
+import { guardNewDeviceMetadatata } from "./guard-new-device-metadatata";
 
 export const guardAuthenticationResultResponse = (
   thing: any
-): thing is TAuthenticationResultResponse => {
+): thing is TCognitoAuthenticationResultResponse => {
   if (
     typeof thing === "object" &&
     typeof thing.AuthenticationResult === "object" &&

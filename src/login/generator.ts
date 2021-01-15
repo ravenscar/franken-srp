@@ -1,26 +1,40 @@
-import { initiateUserSRPAuth, respondSoftwareTokenMfa } from "../cognito";
+import {
+  confirmDevice,
+  initiateUserSRPAuth,
+  respondSoftwareTokenMfa,
+} from "../cognito";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardSoftwareTokenMfaResponse,
-  TAuthenticationResultResponse,
 } from "../cognito/types";
+import {
+  TCognitoAuthenticationResultResponse,
+  TAuthResponse,
+} from "../cognito/types/authentication-result";
 import { makeSrpSession } from "../srp";
 import { bigIntToHex } from "../util";
 import { verifyDevice } from "./verify-device";
 import { verifySrp } from "./verify-srp";
 
-type TResponseCode =
-  | "CREDENTIALS"
-  | "FATAL_ERROR"
-  | "RETRYABLE_ERROR"
-  | "SMS_MFA_REQUIRED"
-  | "SOFTWARE_MFA_REQUIRED";
+const authStepCodes = [
+  "FATAL_ERROR",
+  "RETRYABLE_ERROR",
+  "SMS_MFA_REQUIRED",
+  "SOFTWARE_MFA_REQUIRED",
+] as const;
 
-type TReponse = {
-  code: TResponseCode;
+type x = typeof authStepCodes[number];
+
+type TAuthStepCode = typeof authStepCodes[number];
+
+type TAuthStep = {
+  code: TAuthStepCode;
   error?: Error;
 };
+
+export const guardAuthStep = (thing: any): thing is TAuthStep =>
+  thing.code && authStepCodes.includes(thing.code);
 
 type TSrpLoginParams = {
   region: string;
@@ -28,11 +42,14 @@ type TSrpLoginParams = {
   clientId: string;
   username: string;
   password: string;
-  device?: {
-    key: string;
-    groupKey: string;
-    password: string;
-  };
+  device:
+    | {
+        key: string;
+        groupKey: string;
+        password: string;
+      }
+    | undefined;
+  autoConfirmDevice: boolean;
 };
 
 export async function* srpLogin({
@@ -42,11 +59,41 @@ export async function* srpLogin({
   username,
   password,
   device,
-}: TSrpLoginParams): AsyncGenerator<
-  TReponse,
-  TAuthenticationResultResponse,
-  string
-> {
+  autoConfirmDevice,
+}: TSrpLoginParams): AsyncGenerator<TAuthStep, TAuthResponse, string> {
+  const returnTokens = async ({
+    AuthenticationResult: cognitoRes,
+  }: TCognitoAuthenticationResultResponse) => {
+    const authResponse: TAuthResponse = {
+      tokens: {
+        accessToken: cognitoRes.AccessToken,
+        idToken: cognitoRes.IdToken,
+        refreshToken: cognitoRes.RefreshToken,
+        tokenType: cognitoRes.TokenType,
+        expiresIn: cognitoRes.ExpiresIn,
+      },
+      newDevice: !cognitoRes.NewDeviceMetadata
+        ? undefined
+        : {
+            key: cognitoRes.NewDeviceMetadata.DeviceKey,
+            groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
+          },
+    };
+
+    if (autoConfirmDevice && authResponse.newDevice) {
+      const newDevice = await confirmDevice({
+        region,
+        accessToken: authResponse.tokens.accessToken,
+        deviceKey: authResponse.newDevice.key,
+        deviceGroupKey: authResponse.newDevice.groupKey,
+      });
+      console.log("setup result", newDevice);
+      authResponse.newDevice.password = newDevice.devicePassword;
+    }
+
+    return authResponse;
+  };
+
   const { a, A } = await makeSrpSession();
   const responseA = await initiateUserSRPAuth({
     region,
@@ -69,7 +116,7 @@ export async function* srpLogin({
   });
 
   if (guardAuthenticationResultResponse(nextResponse)) {
-    return nextResponse;
+    return returnTokens(nextResponse);
   }
 
   if (guardSoftwareTokenMfaResponse(nextResponse)) {
@@ -113,5 +160,5 @@ export async function* srpLogin({
     });
   }
 
-  return nextResponse;
+  return returnTokens(nextResponse);
 }

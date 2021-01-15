@@ -1,7 +1,4 @@
-export type TNewDeviceMetadata = {
-  DeviceKey: string;
-  DeviceGroupKey: string;
-};
+import { TNewDeviceMetadata } from "../authentication-result";
 
 export const guardNewDeviceMetadatata = (
   thing: any
