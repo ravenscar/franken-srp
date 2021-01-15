@@ -1,4 +1,4 @@
-export { startSRP } from "./start-srp";
+export { srpLogin } from "./generator";
 export {
   initiateRefreshToken as refresh,
   confirmDevice as setupDevice,

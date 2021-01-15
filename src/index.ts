@@ -1,2 +1,2 @@
 export { getUser } from "./cognito";
-export { startSRP, refresh, setupDevice } from "./login";
+export { srpLogin, refresh, setupDevice } from "./login";

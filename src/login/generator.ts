@@ -15,7 +15,6 @@ type TStartSRP = {
   clientId: string;
   username: string;
   password: string;
-  mfaCode?: string;
   device?: {
     key: string;
     groupKey: string;
@@ -23,15 +22,14 @@ type TStartSRP = {
   };
 };
 
-export const startSRP = async ({
+export async function* srpLogin({
   region,
   userPoolId,
   clientId,
   username,
   password,
-  mfaCode,
   device,
-}: TStartSRP) => {
+}: TStartSRP) {
   const { a, A } = await makeSrpSession();
   const responseA = await initiateUserSRPAuth({
     region,
@@ -58,9 +56,18 @@ export const startSRP = async ({
   }
 
   if (guardSoftwareTokenMfaResponse(nextResponse)) {
-    if (!mfaCode) {
-      throw new Error("Missing MFA Code");
+    const mfaCodeIn = yield "SOFTWARE_TOKEN_MFA";
+
+    if (typeof mfaCodeIn !== "string") {
+      throw new Error("Invalid MFA Code");
     }
+
+    const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
+
+    if (!mfaCode || mfaCode.length !== 6) {
+      throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
+    }
+
     nextResponse = await respondSoftwareTokenMfa({
       region,
       clientId,
@@ -90,4 +97,4 @@ export const startSRP = async ({
   }
 
   return nextResponse;
-};
+}
