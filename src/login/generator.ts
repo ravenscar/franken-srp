@@ -3,13 +3,26 @@ import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
   guardSoftwareTokenMfaResponse,
+  TAuthenticationResultResponse,
 } from "../cognito/types";
 import { makeSrpSession } from "../srp";
 import { bigIntToHex } from "../util";
 import { verifyDevice } from "./verify-device";
 import { verifySrp } from "./verify-srp";
 
-type TStartSRP = {
+type TResponseCode =
+  | "CREDENTIALS"
+  | "FATAL_ERROR"
+  | "RETRYABLE_ERROR"
+  | "SMS_MFA_REQUIRED"
+  | "SOFTWARE_MFA_REQUIRED";
+
+type TReponse = {
+  code: TResponseCode;
+  error?: Error;
+};
+
+type TSrpLoginParams = {
   region: string;
   userPoolId: string;
   clientId: string;
@@ -29,7 +42,11 @@ export async function* srpLogin({
   username,
   password,
   device,
-}: TStartSRP) {
+}: TSrpLoginParams): AsyncGenerator<
+  TReponse,
+  TAuthenticationResultResponse,
+  string
+> {
   const { a, A } = await makeSrpSession();
   const responseA = await initiateUserSRPAuth({
     region,
@@ -56,7 +73,7 @@ export async function* srpLogin({
   }
 
   if (guardSoftwareTokenMfaResponse(nextResponse)) {
-    const mfaCodeIn = yield "SOFTWARE_TOKEN_MFA";
+    const mfaCodeIn = yield { code: "SOFTWARE_MFA_REQUIRED" };
 
     if (typeof mfaCodeIn !== "string") {
       throw new Error("Invalid MFA Code");
@@ -83,7 +100,7 @@ export async function* srpLogin({
     if (!device) {
       throw new Error("missing deviceParams");
     }
-    return verifyDevice({
+    nextResponse = await verifyDevice({
       clientId,
       region,
       userPoolId,

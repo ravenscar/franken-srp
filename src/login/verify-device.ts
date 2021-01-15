@@ -44,7 +44,9 @@ export const verifyDevice = async ({
     deviceGroupKey,
   });
 
-  if (guardAuthenticationResultResponse(responseB)) {
-    return responseB;
+  if (!guardAuthenticationResultResponse(responseB)) {
+    throw new Error(`unexpected response: ${JSON.stringify(responseB)}`);
   }
+
+  return responseB;
 };
