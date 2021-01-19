@@ -1,4 +1,4 @@
-export { srpLogin, guardAuthStep } from "./generator";
+export { srpLogin } from "./generator";
 export {
   initiateRefreshToken as refresh,
   confirmDevice,

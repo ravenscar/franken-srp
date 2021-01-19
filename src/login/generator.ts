@@ -18,23 +18,20 @@ import { verifyDevice } from "./verify-device";
 import { verifySrp } from "./verify-srp";
 
 const authStepCodes = [
-  "FATAL_ERROR",
-  "RETRYABLE_ERROR",
+  "TOKENS",
+  "ERROR",
   "SMS_MFA_REQUIRED",
   "SOFTWARE_MFA_REQUIRED",
+  "NEW_PASSWORD_REQUIRED",
 ] as const;
-
-type x = typeof authStepCodes[number];
 
 type TAuthStepCode = typeof authStepCodes[number];
 
 type TAuthStep = {
   code: TAuthStepCode;
   error?: Error;
+  response?: TAuthResponse;
 };
-
-export const guardAuthStep = (thing: any): thing is TAuthStep =>
-  thing.code && authStepCodes.includes(thing.code);
 
 type TSrpLoginParams = {
   region: string;
@@ -60,10 +57,10 @@ export async function* srpLogin({
   password,
   device,
   autoConfirmDevice,
-}: TSrpLoginParams): AsyncGenerator<TAuthStep, TAuthResponse, string> {
+}: TSrpLoginParams): AsyncGenerator<TAuthStep, TAuthStep, string> {
   const returnTokens = async ({
     AuthenticationResult: cognitoRes,
-  }: TCognitoAuthenticationResultResponse) => {
+  }: TCognitoAuthenticationResultResponse): Promise<TAuthStep> => {
     const authResponse: TAuthResponse = {
       tokens: {
         accessToken: cognitoRes.AccessToken,
@@ -87,78 +84,87 @@ export async function* srpLogin({
         deviceKey: authResponse.newDevice.key,
         deviceGroupKey: authResponse.newDevice.groupKey,
       });
-      console.log("setup result", newDevice);
       authResponse.newDevice.password = newDevice.devicePassword;
     }
 
-    return authResponse;
+    return {
+      code: "TOKENS",
+      response: authResponse,
+    };
   };
 
-  const { a, A } = await makeSrpSession();
-  const responseA = await initiateUserSRPAuth({
-    region,
-    clientId,
-    username,
-    deviceKey: device?.key,
-    srpA: bigIntToHex(A),
-  });
-
-  let nextResponse = await verifySrp({
-    region,
-    userPoolId,
-    clientId,
-    password,
-    a,
-    challengeName: responseA.ChallengeName,
-    challengeParameters: responseA.ChallengeParameters,
-    deviceKey: device?.key,
-    deviceGroupKey: device?.groupKey,
-  });
-
-  if (guardAuthenticationResultResponse(nextResponse)) {
-    return returnTokens(nextResponse);
-  }
-
-  if (guardSoftwareTokenMfaResponse(nextResponse)) {
-    const mfaCodeIn = yield { code: "SOFTWARE_MFA_REQUIRED" };
-
-    if (typeof mfaCodeIn !== "string") {
-      throw new Error("Invalid MFA Code");
-    }
-
-    const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
-
-    if (!mfaCode || mfaCode.length !== 6) {
-      throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
-    }
-
-    nextResponse = await respondSoftwareTokenMfa({
+  try {
+    const { a, A } = await makeSrpSession();
+    const responseA = await initiateUserSRPAuth({
       region,
       clientId,
-      challengeResponses: {
-        mfaCode,
-        username: responseA.ChallengeParameters.USERNAME,
-      },
-      session: nextResponse.Session,
+      username,
+      deviceKey: device?.key,
+      srpA: bigIntToHex(A),
     });
-  }
 
-  if (guardDeviceChallengeResponse(nextResponse)) {
-    if (!device) {
-      throw new Error("missing deviceParams");
-    }
-    nextResponse = await verifyDevice({
-      clientId,
+    let nextResponse = await verifySrp({
       region,
       userPoolId,
-      deviceKey: device.key,
-      deviceGroupKey: device.groupKey,
-      password: device.password,
-      username:
-        responseA.ChallengeParameters.USER_ID_FOR_SRP ||
-        responseA.ChallengeParameters.USERNAME,
+      clientId,
+      password,
+      a,
+      challengeName: responseA.ChallengeName,
+      challengeParameters: responseA.ChallengeParameters,
+      deviceKey: device?.key,
+      deviceGroupKey: device?.groupKey,
     });
-  }
 
-  return returnTokens(nextResponse);
+    if (guardAuthenticationResultResponse(nextResponse)) {
+      return returnTokens(nextResponse);
+    }
+
+    if (guardSoftwareTokenMfaResponse(nextResponse)) {
+      const mfaCodeIn = yield { code: "SOFTWARE_MFA_REQUIRED" };
+
+      if (typeof mfaCodeIn !== "string") {
+        throw new Error("Invalid MFA Code");
+      }
+
+      const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
+
+      if (!mfaCode || mfaCode.length !== 6) {
+        throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
+      }
+
+      nextResponse = await respondSoftwareTokenMfa({
+        region,
+        clientId,
+        challengeResponses: {
+          mfaCode,
+          username: responseA.ChallengeParameters.USERNAME,
+        },
+        session: nextResponse.Session,
+      });
+    }
+
+    if (guardDeviceChallengeResponse(nextResponse)) {
+      if (!device) {
+        throw new Error("missing deviceParams");
+      }
+      nextResponse = await verifyDevice({
+        clientId,
+        region,
+        userPoolId,
+        deviceKey: device.key,
+        deviceGroupKey: device.groupKey,
+        password: device.password,
+        username:
+          responseA.ChallengeParameters.USER_ID_FOR_SRP ||
+          responseA.ChallengeParameters.USERNAME,
+      });
+    }
+
+    return returnTokens(nextResponse);
+  } catch (error) {
+    return {
+      error,
+      code: "ERROR",
+    };
+  }
 }
