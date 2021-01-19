@@ -6,4 +6,4 @@ Thumbs.db
 *.swp
 node_modules
 tsconfig.tsbuildinfo
-
+_cognito-test-config.ts
