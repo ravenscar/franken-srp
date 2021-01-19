@@ -1,10 +1,16 @@
 {
   "name": "franken-srp",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "low level implementation lib for use with aws cognito srp login",
   "main": "dist/index.js",
   "scripts": {
+    "clean": "rm -rf tsconfig.tsbuildinfo dist",
+    "build": "npm run clean && tsc --build --force",
     "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ravenscar/franken-srp.git"
   },
   "keywords": [
     "cognito",
@@ -13,7 +19,11 @@
     "idp"
   ],
   "author": "Paul Nilsson",
-  "license": "ISC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ravenscar/franken-srp/issues"
+  },
+  "homepage": "https://github.com/ravenscar/franken-srp#readme",
   "devDependencies": {
     "@types/jest": "^26.0.19",
     "@types/node": "^14.14.14",
