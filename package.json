@@ -7,9 +7,7 @@
     "clean": "rm -rf tsconfig.tsbuildinfo dist",
     "build": "npm run clean && tsc --build --force",
     "test": "jest",
-    "ckdbuild": "cd src/test/cdk && tsc",
-    "cdkwatch": "cd src/test/cdk && tsc -w",
-    "cdktest": "cd src/test/cdk && jest",
+    "cdktest": "jest src/test/cdk",
     "cdk": "cd src/test/cdk && cdk"
   },
   "repository": {

@@ -9,3 +9,4 @@ tsconfig.tsbuildinfo
 _cognito-test-config.ts
 .cdk.staging
 cdk.out
+cfn_out.json
