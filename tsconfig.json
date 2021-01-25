@@ -14,6 +14,7 @@
     "lib": ["ES2017", "DOM", "ESNext.BigInt"],
     "target": "ES2017",
     "types": ["jest", "node"],
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "resolveJsonModule": true
   }
 }
