@@ -1,16 +1,8 @@
 import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { v4 } from "uuid";
 
-import {
-  poolSetups,
-  USER_POOL_ID_SLUG,
-  USER_POOL_REGION_SLUG,
-  USER_POOL_CLIENT_ID_SLUG,
-  DEFAULT_PASSWORD,
-} from "./cdk/lib/poolSetups";
-import * as f from "./cdk/cfn_out.json";
-
-type TKeys = keyof typeof f.CognitoIntegrationStack;
+import { poolSetups, DEFAULT_PASSWORD } from "./cdk/lib/poolSetups";
+import { getConfigByName } from "./poolHelper";
 
 const createUser = async (pool: string, region: string) => {
   const cisp = new CognitoIdentityServiceProvider({ region });
@@ -41,16 +33,7 @@ const run = async () => {
   const userMappings: Record<string, string> = {};
 
   for (const setup of poolSetups) {
-    const pool =
-      f.CognitoIntegrationStack[`${setup.name}${USER_POOL_ID_SLUG}` as TKeys];
-    const region =
-      f.CognitoIntegrationStack[
-        `${setup.name}${USER_POOL_REGION_SLUG}` as TKeys
-      ];
-    const client =
-      f.CognitoIntegrationStack[
-        `${setup.name}${USER_POOL_CLIENT_ID_SLUG}` as TKeys
-      ];
+    const { pool, region, client } = getConfigByName(setup.name);
 
     if (!pool || !region || !client) {
       throw new Error(

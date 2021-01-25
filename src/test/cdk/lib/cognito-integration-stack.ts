@@ -3,9 +3,9 @@ import * as cognito from "@aws-cdk/aws-cognito";
 import {
   poolSetups,
   TPoolSetup,
-  USER_POOL_ID_SLUG,
-  USER_POOL_CLIENT_ID_SLUG,
-  USER_POOL_REGION_SLUG,
+  getPoolIdSlug,
+  getPoolClientIdSlug,
+  getPoolRegionSlug,
 } from "./poolSetups";
 
 const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
@@ -14,15 +14,15 @@ const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
     userPool: pool,
   });
 
-  new cdk.CfnOutput(construct, `${setup.name}${USER_POOL_ID_SLUG}`, {
+  new cdk.CfnOutput(construct, getPoolIdSlug(setup.name), {
     value: pool.userPoolId,
   });
 
-  new cdk.CfnOutput(construct, `${setup.name}${USER_POOL_CLIENT_ID_SLUG}`, {
+  new cdk.CfnOutput(construct, getPoolClientIdSlug(setup.name), {
     value: client.userPoolClientId,
   });
 
-  new cdk.CfnOutput(construct, `${setup.name}${USER_POOL_REGION_SLUG}`, {
+  new cdk.CfnOutput(construct, getPoolRegionSlug(setup.name), {
     value: construct.region,
   });
 };

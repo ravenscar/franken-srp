@@ -27,7 +27,7 @@ const authStepCodes = [
 
 type TAuthStepCode = typeof authStepCodes[number];
 
-type TAuthStep = {
+export type TAuthStep = {
   code: TAuthStepCode;
   error?: Error;
   response?: TAuthResponse;
