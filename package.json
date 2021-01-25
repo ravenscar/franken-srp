@@ -6,7 +6,11 @@
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo dist",
     "build": "npm run clean && tsc --build --force",
-    "test": "jest"
+    "test": "jest",
+    "ckdbuild": "cd src/test/cdk && tsc",
+    "cdkwatch": "cd src/test/cdk && tsc -w",
+    "cdktest": "cd src/test/cdk && jest",
+    "cdk": "cd src/test/cdk && cdk"
   },
   "repository": {
     "type": "git",
@@ -25,8 +29,13 @@
   },
   "homepage": "https://github.com/ravenscar/franken-srp#readme",
   "devDependencies": {
+    "source-map-support": "^0.5.16",
+    "@aws-cdk/assert": "1.85.0",
+    "@aws-cdk/aws-cognito": "^1.85.0",
+    "@aws-cdk/core": "^1.85.0",
     "@types/jest": "^26.0.19",
     "@types/node": "^14.14.14",
+    "aws-cdk": "^1.85.0",
     "jest": "^26.6.3",
     "minimal-cognito-totp": "^1.0.1",
     "node-fetch": "^2.6.1",

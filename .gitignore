@@ -7,3 +7,5 @@ Thumbs.db
 node_modules
 tsconfig.tsbuildinfo
 _cognito-test-config.ts
+.cdk.staging
+cdk.out
