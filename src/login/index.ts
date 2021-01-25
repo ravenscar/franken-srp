@@ -1,4 +1,9 @@
-export { srpLogin, TAuthStep } from "./generator";
+export {
+  srpLogin,
+  TAuthStep,
+  TSrpLoginParams,
+  TSrpLoginResponse,
+} from "./generator";
 export {
   initiateRefreshToken as refresh,
   confirmDevice,

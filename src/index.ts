@@ -1,2 +1,9 @@
 export { getUser } from "./cognito";
-export { srpLogin, refresh, confirmDevice, TAuthStep } from "./login";
+export {
+  srpLogin,
+  refresh,
+  confirmDevice,
+  TAuthStep,
+  TSrpLoginParams,
+  TSrpLoginResponse,
+} from "./login";

@@ -33,7 +33,7 @@ export type TAuthStep = {
   response?: TAuthResponse;
 };
 
-type TSrpLoginParams = {
+export type TSrpLoginParams = {
   region: string;
   userPoolId: string;
   clientId: string;
@@ -49,6 +49,8 @@ type TSrpLoginParams = {
   autoConfirmDevice: boolean;
 };
 
+export type TSrpLoginResponse = AsyncGenerator<TAuthStep, TAuthStep, string>;
+
 export async function* srpLogin({
   region,
   userPoolId,
@@ -57,7 +59,7 @@ export async function* srpLogin({
   password,
   device,
   autoConfirmDevice,
-}: TSrpLoginParams): AsyncGenerator<TAuthStep, TAuthStep, string> {
+}: TSrpLoginParams): TSrpLoginResponse {
   const returnTokens = async ({
     AuthenticationResult: cognitoRes,
   }: TCognitoAuthenticationResultResponse): Promise<TAuthStep> => {
