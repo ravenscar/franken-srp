@@ -1,4 +1,6 @@
-import { UserPoolProps } from "@aws-cdk/aws-cognito";
+import { UserPoolProps, UserPoolClientProps } from "@aws-cdk/aws-cognito";
+
+type TClientPropsWithoutUserpool = Omit<UserPoolClientProps, "userPool">;
 
 const USER_POOL_ID_SLUG = "UserPoolId";
 const USER_POOL_REGION_SLUG = "UserPoolRegion";
@@ -14,12 +16,14 @@ export const getPoolClientIdSlug = (name: string) =>
 
 export type TPoolSetup = {
   name: string;
-  props: UserPoolProps;
+  poolProps: UserPoolProps;
+  clientProps: TClientPropsWithoutUserpool;
 };
 
 export const poolSetups: TPoolSetup[] = [
   {
     name: "frankenInttestA",
-    props: {},
+    poolProps: {},
+    clientProps: {},
   },
 ];

@@ -9,8 +9,9 @@ import {
 } from "../../poolSetups";
 
 const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
-  const pool = new cognito.UserPool(construct, setup.name, {});
+  const pool = new cognito.UserPool(construct, setup.name, setup.poolProps);
   const client = new cognito.UserPoolClient(construct, `${setup.name}-client`, {
+    ...setup.clientProps,
     userPool: pool,
   });
 
@@ -26,6 +27,7 @@ const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
     value: construct.region,
   });
 };
+
 export class CognitoIntegrationStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
