@@ -6,7 +6,7 @@ import {
   getPoolIdSlug,
   getPoolClientIdSlug,
   getPoolRegionSlug,
-} from "./poolSetups";
+} from "../../poolSetups";
 
 const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
   const pool = new cognito.UserPool(construct, setup.name, {});

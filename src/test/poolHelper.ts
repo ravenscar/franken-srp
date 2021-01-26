@@ -3,7 +3,7 @@ import {
   getPoolClientIdSlug,
   getPoolIdSlug,
   getPoolRegionSlug,
-} from "./cdk/lib/poolSetups";
+} from "./poolSetups";
 
 type TKeys = keyof typeof cfnOut.CognitoIntegrationStack;
 

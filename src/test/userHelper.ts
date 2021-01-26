@@ -1,5 +1,5 @@
 import * as userOut from "./test_users_out.json";
-import { DEFAULT_PASSWORD } from "./cdk/lib/poolSetups";
+import { DEFAULT_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 
 type TKeys = keyof typeof userOut;

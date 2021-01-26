@@ -11,7 +11,7 @@ import {
   MFASEED,
 } from "../_cognito-test-config";
 
-import { poolSetups } from "./cdk/lib/poolSetups";
+import { poolSetups } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 import { getUserByPool } from "./userHelper";
 

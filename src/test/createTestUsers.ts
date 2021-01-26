@@ -1,7 +1,7 @@
 import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { v4 } from "uuid";
 
-import { poolSetups, DEFAULT_PASSWORD } from "./cdk/lib/poolSetups";
+import { poolSetups, DEFAULT_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 
 const createUser = async (pool: string, region: string) => {
