@@ -1,4 +1,4 @@
-import { UserPoolProps, UserPoolClientProps } from "@aws-cdk/aws-cognito";
+import { UserPoolProps, UserPoolClientProps, Mfa } from "@aws-cdk/aws-cognito";
 
 type TClientPropsWithoutUserpool = Omit<UserPoolClientProps, "userPool">;
 
@@ -14,16 +14,38 @@ export const getPoolRegionSlug = (name: string) =>
 export const getPoolClientIdSlug = (name: string) =>
   `${name}${USER_POOL_CLIENT_ID_SLUG}`;
 
+export type THint = "MFA_ENABLED";
+
 export type TPoolSetup = {
   name: string;
   poolProps: UserPoolProps;
   clientProps: TClientPropsWithoutUserpool;
+  hints: THint[];
 };
 
 export const poolSetups: TPoolSetup[] = [
   {
-    name: "frankenInttestA",
+    name: "FitVanilla",
     poolProps: {},
     clientProps: {},
+    hints: [],
+  },
+  {
+    name: "FitMfaOptionalAndOff",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    clientProps: {},
+    hints: [],
+  },
+  {
+    name: "FitMfaOptionalAndOn",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    clientProps: {},
+    hints: ["MFA_ENABLED"],
   },
 ];

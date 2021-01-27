@@ -2,25 +2,11 @@ import { getTotp } from "minimal-cognito-totp";
 
 import { srpLogin, refresh, TAuthStep } from "../";
 
-import {
-  AWS_DEFAULT_REGION,
-  CLIENT_ID,
-  USER_POOL_ID,
-  USERNAME,
-  PASSWORD,
-  MFASEED,
-} from "../_cognito-test-config";
-
 import { poolSetups } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 import { getUserByPool } from "./userHelper";
 
-const userPoolParams = {
-  region: AWS_DEFAULT_REGION,
-  userPoolId: USER_POOL_ID,
-  clientId: CLIENT_ID,
-};
-
+/*
 export const callRefresh = async (refreshToken: string) => {
   const device = undefined;
 
@@ -45,6 +31,7 @@ export const callRefresh = async (refreshToken: string) => {
     }
   }
 };
+*/
 
 const expectResult = (step: TAuthStep, code: string) => {
   if (step.code !== code) {
@@ -56,42 +43,56 @@ const expectResult = (step: TAuthStep, code: string) => {
   expect(step.code).toBe(code);
 };
 
-const getConfig = (name: string) => {
-  const { pool, region, client } = getConfigByName(name);
-  const { username, password } = getUserByPool(name);
+const getConfig = async (name: string) => {
+  const { poolId, region, clientId } = getConfigByName(name);
+  const { username, password, secretCode } = getUserByPool(name);
 
-  expect(pool).toBeDefined();
+  expect(poolId).toBeDefined();
   expect(region).toBeDefined();
-  expect(client).toBeDefined();
+  expect(clientId).toBeDefined();
   expect(username).toBeDefined();
   expect(password).toBeDefined();
 
-  return { pool, region, client, username, password };
+  return { poolId, region, clientId, username, password, secretCode };
 };
 
 for (const setup of poolSetups) {
-  const { pool, region, client, username, password } = getConfig(setup.name);
-
   it(`can login using pool ${setup.name}`, async () => {
-    const poolId = `${setup.name}`;
-    const login = srpLogin({
-      userPoolId: pool,
+    const {
+      poolId,
       region,
-      clientId: client,
+      clientId,
+      username,
+      password,
+      secretCode,
+    } = await getConfig(setup.name);
+
+    const login = srpLogin({
+      region,
+      clientId,
+      userPoolId: poolId,
       username: username,
       password: password,
       device: undefined,
       autoConfirmDevice: true,
     });
 
-    const firstResult = await login.next();
+    let response = await login.next();
 
-    expect(firstResult.done).toEqual(true);
+    if (setup.hints.includes("MFA_ENABLED")) {
+      expect(response.done).toEqual(false);
+      expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
-    expectResult(firstResult.value, "TOKENS");
+      expect(secretCode).toBeDefined();
+      response = await login.next(getTotp(secretCode!)!);
+    }
 
-    expect(firstResult.value.response).toBeDefined();
-    const authResult = firstResult.value.response!;
+    expect(response.done).toEqual(true);
+
+    expectResult(response.value, "TOKENS");
+
+    expect(response.value.response).toBeDefined();
+    const authResult = response.value.response!;
 
     expect(authResult.tokens.accessToken).toBeDefined();
     expect(authResult.tokens.idToken).toBeDefined();
@@ -104,44 +105,17 @@ for (const setup of poolSetups) {
   });
 }
 
-xit("can login with MFA", async () => {
+it("fails login with fatal error if bad username", async () => {
+  const { poolId, region, clientId, password } = await getConfig(
+    poolSetups[0].name
+  );
+
   const login = srpLogin({
-    ...userPoolParams,
-    username: USERNAME,
-    password: PASSWORD,
-    device: undefined,
-    autoConfirmDevice: true,
-  });
-
-  const firstResult = await login.next();
-
-  expect(firstResult.done).toEqual(false);
-  expect(firstResult.value.code).toBe("SOFTWARE_MFA_REQUIRED");
-
-  const secondResult = await login.next(getTotp(MFASEED)!);
-
-  expect(secondResult.done).toEqual(true);
-
-  expect(secondResult.value.code).toBe("TOKENS");
-
-  expect(secondResult.value.response).toBeDefined();
-  const authResult = secondResult.value.response!;
-
-  expect(authResult.tokens.accessToken).toBeDefined();
-  expect(authResult.tokens.idToken).toBeDefined();
-  expect(authResult.tokens.refreshToken).toBeDefined();
-
-  expect(authResult.newDevice).toBeDefined();
-  expect(authResult.newDevice!.password).toBeDefined();
-
-  console.log(JSON.stringify(authResult, null, 2));
-});
-
-xit("fails login with fatal error if bad username", async () => {
-  const login = srpLogin({
-    ...userPoolParams,
-    username: "unknownuser@nowhere.com",
-    password: PASSWORD,
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: "blahblah",
+    password: password,
     device: undefined,
     autoConfirmDevice: true,
   });
@@ -150,14 +124,20 @@ xit("fails login with fatal error if bad username", async () => {
 
   expect(result.value.code).toBe("ERROR");
   expect(result.value.error).toBeDefined();
-  expect(result.value.error!.message).toMatch("Incorrect username or password");
+  expect(result.value.error!.message).toMatch("User does not exist");
 });
 
-xit("fails login with fatal error if bad password", async () => {
+it("fails login with fatal error if bad password", async () => {
+  const { poolId, region, clientId, username } = await getConfig(
+    poolSetups[0].name
+  );
+
   const login = srpLogin({
-    ...userPoolParams,
-    username: USERNAME,
-    password: "not the password",
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: "BAD PASSWORD",
     device: undefined,
     autoConfirmDevice: true,
   });
