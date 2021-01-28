@@ -87,6 +87,13 @@ type TRespondToAuthChallengeParams =
         USERNAME: string;
         SOFTWARE_TOKEN_MFA_CODE: string;
       };
+    }
+  | {
+      ChallengeName: "SMS_MFA";
+      ChallengeResponses: {
+        USERNAME: string;
+        SMS_MFA_CODE: string;
+      };
     };
 
 type TCognitoFetchArgs =
