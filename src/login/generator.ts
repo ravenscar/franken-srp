@@ -67,6 +67,7 @@ export async function* srpLogin({
     AuthenticationResult: cognitoRes,
   }: TCognitoAuthenticationResultResponse): Promise<TAuthStep> => {
     const authResponse: TAuthResponse = {
+      username,
       tokens: {
         accessToken: cognitoRes.AccessToken,
         idToken: cognitoRes.IdToken,

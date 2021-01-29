@@ -27,7 +27,7 @@ export const respondPasswordVerifier = async ({
   claimSig,
 }: TRespondPasswordVerifierParams) => {
   const devKey = deviceKey!;
-  if (challengeName === "DEVICE_PASSWORD_VERIFIER" && devKey) {
+  if (challengeName === "DEVICE_PASSWORD_VERIFIER" && !devKey) {
     throw new Error(
       "deviceKey must be passed for RespondToAuthChallenge: DEVICE_PASSWORD_VERIFIER"
     );

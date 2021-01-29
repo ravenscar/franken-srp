@@ -17,6 +17,7 @@ export type TCognitoAuthenticationResultResponse = {
 };
 
 export type TAuthResponse = {
+  username: string;
   tokens: {
     accessToken: string;
     refreshToken: string;
