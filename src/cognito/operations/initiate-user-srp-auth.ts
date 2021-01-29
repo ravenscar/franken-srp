@@ -1,3 +1,4 @@
+import { SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import { guardInitiateUserSrpResponse } from "../types";
 
@@ -31,7 +32,12 @@ export const initiateUserSRPAuth = async ({
   });
 
   if (!guardInitiateUserSrpResponse(response)) {
-    throw new Error(`unexpected responseA: ${JSON.stringify(response)}`);
+    throw new SRPError(
+      "Unexpected Response",
+      500,
+      "guardInitiateUserSrpResponse",
+      { response }
+    );
   }
 
   return response;

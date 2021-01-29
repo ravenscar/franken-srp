@@ -1,3 +1,4 @@
+import { SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import { guardRefreshResult } from "../types";
 
@@ -28,7 +29,9 @@ export const initiateRefreshToken = async ({
   });
 
   if (!guardRefreshResult(response)) {
-    throw new Error(`unexpected response: ${JSON.stringify(response)}`);
+    throw new SRPError("Unexpected Response", 500, "guardRefreshResult", {
+      response,
+    });
   }
 
   return response;

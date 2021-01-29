@@ -15,7 +15,7 @@ import {
   TAuthResponse,
 } from "../cognito/types/authentication-result";
 import { makeSrpSession } from "../srp";
-import { bigIntToHex } from "../util";
+import { bigIntToHex, SRPError } from "../util";
 import { verifyDevice } from "./verify-device";
 import { verifySrp } from "./verify-srp";
 
@@ -129,13 +129,18 @@ export async function* srpLogin({
       const mfaCodeIn = yield { code: "SOFTWARE_MFA_REQUIRED" };
 
       if (typeof mfaCodeIn !== "string") {
-        throw new Error("Invalid MFA Code");
+        throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
       }
 
       const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
 
       if (!mfaCode || mfaCode.length !== 6) {
-        throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
+        throw new SRPError(
+          `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
+          401,
+          "MFA",
+          { mfaCode, mfaCodeIn }
+        );
       }
 
       nextResponse = await respondSoftwareTokenMfa({
@@ -156,13 +161,18 @@ export async function* srpLogin({
       };
 
       if (typeof mfaCodeIn !== "string") {
-        throw new Error("Invalid MFA Code");
+        throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
       }
 
       const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
 
       if (!mfaCode || mfaCode.length !== 6) {
-        throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
+        throw new SRPError(
+          `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
+          401,
+          "MFA",
+          { mfaCode, mfaCodeIn }
+        );
       }
 
       nextResponse = await respondSmsMfa({
@@ -178,7 +188,7 @@ export async function* srpLogin({
 
     if (guardDeviceChallengeResponse(nextResponse)) {
       if (!device) {
-        throw new Error("missing deviceParams");
+        throw new SRPError("Missing deviceParams", 500, "device", {});
       }
       nextResponse = await verifyDevice({
         clientId,
