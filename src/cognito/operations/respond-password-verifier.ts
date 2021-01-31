@@ -1,3 +1,4 @@
+import { SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
@@ -27,10 +28,11 @@ export const respondPasswordVerifier = async ({
   claimSig,
 }: TRespondPasswordVerifierParams) => {
   const devKey = deviceKey!;
-  if (challengeName === "DEVICE_PASSWORD_VERIFIER" && devKey) {
-    throw new Error(
-      "deviceKey must be passed for RespondToAuthChallenge: DEVICE_PASSWORD_VERIFIER"
-    );
+  if (challengeName === "DEVICE_PASSWORD_VERIFIER" && !devKey) {
+    throw new SRPError("Missing deviceKey", 500, "respondPasswordVerifier", {
+      challengeName,
+      deviceKey,
+    });
   }
 
   const response = await cognitoFetch({
@@ -57,7 +59,9 @@ export const respondPasswordVerifier = async ({
     !guardSoftwareTokenMfaResponse(response) &&
     !guardSmsMfaResponse(response)
   ) {
-    throw new Error(`unexpected response: ${JSON.stringify(response)}`);
+    throw new SRPError("Unexpected Response", 500, "respondPasswordVerifier", {
+      response,
+    });
   }
 
   return response;

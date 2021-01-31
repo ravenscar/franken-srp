@@ -1,7 +1,7 @@
 import { respondDeviceSRPAuth } from "../cognito";
 import { guardAuthenticationResultResponse } from "../cognito/types";
 import { makeSrpSession } from "../srp";
-import { bigIntToHex } from "../util";
+import { bigIntToHex, SRPError } from "../util";
 import { verifySrp } from "./verify-srp";
 
 type TVerifyDevice = {
@@ -45,7 +45,9 @@ export const verifyDevice = async ({
   });
 
   if (!guardAuthenticationResultResponse(responseB)) {
-    throw new Error(`unexpected response: ${JSON.stringify(responseB)}`);
+    throw new SRPError("Unexpected Response", 500, "verifyDevice", {
+      responseB,
+    });
   }
 
   return responseB;
