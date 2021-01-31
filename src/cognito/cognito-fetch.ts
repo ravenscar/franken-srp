@@ -1,3 +1,5 @@
+import { SRPError } from "../util";
+
 export const cognitoFetch = async ({
   operation,
   region,
@@ -23,16 +25,18 @@ export const cognitoFetch = async ({
     return response.json();
   }
 
-  let errorText = `Fetch failed: status: ${response.status} ${response.statusText}`;
+  let errorText = response.statusText;
+  let errorDetail = {};
 
   try {
     const json = await response.json();
-    errorText = `${errorText}\n${JSON.stringify(json)}`;
+    errorDetail = json;
+    errorText = json.message || errorText;
   } catch (e) {
-    errorText = `${errorText}\n${e?.stack || e?.message || e}`;
+    errorDetail = e;
   }
 
-  throw new Error(errorText);
+  throw new SRPError(errorText, response.status, "Fetch", errorDetail);
 };
 
 type TInitiateAuthParams =
