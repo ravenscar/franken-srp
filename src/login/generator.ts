@@ -1,11 +1,13 @@
 import {
   confirmDevice,
   initiateUserSRPAuth,
+  respondSmsMfa,
   respondSoftwareTokenMfa,
 } from "../cognito";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
+  guardSmsMfaResponse,
   guardSoftwareTokenMfaResponse,
 } from "../cognito/types";
 import {
@@ -31,6 +33,7 @@ export type TAuthStep = {
   code: TAuthStepCode;
   error?: Error;
   response?: TAuthResponse;
+  hint?: string;
 };
 
 export type TSrpLoginParams = {
@@ -135,6 +138,33 @@ export async function* srpLogin({
       }
 
       nextResponse = await respondSoftwareTokenMfa({
+        region,
+        clientId,
+        challengeResponses: {
+          mfaCode,
+          username: responseA.ChallengeParameters.USERNAME,
+        },
+        session: nextResponse.Session,
+      });
+    }
+
+    if (guardSmsMfaResponse(nextResponse)) {
+      const mfaCodeIn = yield {
+        code: "SMS_MFA_REQUIRED",
+        hint: nextResponse.ChallengeParameters.CODE_DELIVERY_DESTINATION,
+      };
+
+      if (typeof mfaCodeIn !== "string") {
+        throw new Error("Invalid MFA Code");
+      }
+
+      const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
+
+      if (!mfaCode || mfaCode.length !== 6) {
+        throw new Error(`Expected 6 digit MFA code, received: ${mfaCodeIn}`);
+      }
+
+      nextResponse = await respondSmsMfa({
         region,
         clientId,
         challengeResponses: {

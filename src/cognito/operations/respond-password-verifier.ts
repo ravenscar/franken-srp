@@ -2,6 +2,7 @@ import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
+  guardSmsMfaResponse,
   guardSoftwareTokenMfaResponse,
   TSRPChallengeParameters,
 } from "../types";
@@ -53,7 +54,8 @@ export const respondPasswordVerifier = async ({
   if (
     !guardAuthenticationResultResponse(response) &&
     !guardDeviceChallengeResponse(response) &&
-    !guardSoftwareTokenMfaResponse(response)
+    !guardSoftwareTokenMfaResponse(response) &&
+    !guardSmsMfaResponse(response)
   ) {
     throw new Error(`unexpected response: ${JSON.stringify(response)}`);
   }

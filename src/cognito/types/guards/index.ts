@@ -5,4 +5,5 @@ export * from "./guard-initiate-user-srp-response";
 export * from "./guard-new-device-metadatata";
 export * from "./guard-refresh-result";
 export * from "./guard-software-token-mfa-response";
+export * from "./guard-sms-token-mfa-response";
 export * from "./guard-srp-challenge-parameters";
