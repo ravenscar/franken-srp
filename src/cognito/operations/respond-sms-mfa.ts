@@ -1,3 +1,4 @@
+import { SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
@@ -35,7 +36,9 @@ export const respondSmsMfa = async ({
     !guardAuthenticationResultResponse(response) &&
     !guardDeviceChallengeResponse(response)
   ) {
-    throw new Error(`unexpected response: ${JSON.stringify(response)}`);
+    throw new SRPError("Unexpected Response", 500, "respondSmsMfa", {
+      response,
+    });
   }
 
   return response;
