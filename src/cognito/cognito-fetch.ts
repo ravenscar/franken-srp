@@ -90,6 +90,7 @@ type TRespondToAuthChallengeParams =
       ChallengeResponses: {
         USERNAME: string;
         SOFTWARE_TOKEN_MFA_CODE: string;
+        DEVICE_KEY: string | undefined;
       };
     }
   | {
@@ -97,6 +98,7 @@ type TRespondToAuthChallengeParams =
       ChallengeResponses: {
         USERNAME: string;
         SMS_MFA_CODE: string;
+        DEVICE_KEY: string | undefined;
       };
     };
 
