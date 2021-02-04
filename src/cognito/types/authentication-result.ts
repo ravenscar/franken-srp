@@ -28,6 +28,6 @@ export type TAuthResponse = {
   newDevice?: {
     key: string;
     groupKey: string;
-    password?: string;
+    password: string;
   };
 };

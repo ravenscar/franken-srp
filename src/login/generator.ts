@@ -75,22 +75,21 @@ export async function* srpLogin({
         tokenType: cognitoRes.TokenType,
         expiresIn: cognitoRes.ExpiresIn,
       },
-      newDevice: !cognitoRes.NewDeviceMetadata
-        ? undefined
-        : {
-            key: cognitoRes.NewDeviceMetadata.DeviceKey,
-            groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
-          },
+      newDevice: undefined,
     };
 
-    if (autoConfirmDevice && authResponse.newDevice) {
+    if (autoConfirmDevice && cognitoRes.NewDeviceMetadata) {
       const newDevice = await confirmDevice({
         region,
         accessToken: authResponse.tokens.accessToken,
-        deviceKey: authResponse.newDevice.key,
-        deviceGroupKey: authResponse.newDevice.groupKey,
+        deviceKey: cognitoRes.NewDeviceMetadata.DeviceKey,
+        deviceGroupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
       });
-      authResponse.newDevice.password = newDevice.devicePassword;
+      authResponse.newDevice = {
+        key: cognitoRes.NewDeviceMetadata.DeviceKey,
+        groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
+        password: newDevice.devicePassword,
+      };
     }
 
     return {

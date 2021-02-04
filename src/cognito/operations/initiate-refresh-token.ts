@@ -34,5 +34,10 @@ export const initiateRefreshToken = async ({
     });
   }
 
-  return response;
+  return {
+    tokenType: response.AuthenticationResult.TokenType,
+    expiresIn: response.AuthenticationResult.ExpiresIn,
+    idToken: response.AuthenticationResult.IdToken,
+    accessToken: response.AuthenticationResult.AccessToken,
+  };
 };
