@@ -15,6 +15,11 @@ const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
     userPool: pool,
   });
 
+  const cfnUserPool = pool.node.defaultChild as cognito.CfnUserPool;
+  for (const k in setup.CfnUserPoolProps) {
+    (cfnUserPool as any)[k] = (setup.CfnUserPoolProps as any)[k];
+  }
+
   new cdk.CfnOutput(construct, getPoolIdSlug(setup.name), {
     value: pool.userPoolId,
   });

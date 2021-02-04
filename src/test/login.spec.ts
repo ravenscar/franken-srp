@@ -98,7 +98,18 @@ for (const setup of poolSetups) {
     expect(authResult.tokens.idToken).toBeDefined();
     expect(authResult.tokens.refreshToken).toBeDefined();
 
-    // expect(authResult.newDevice).toBeDefined();
+    if (
+      setup.hints.includes("REMEMBER_DEVICES_OPT") ||
+      setup.hints.includes("REMEMBER_DEVICES_YES")
+    ) {
+      expect(authResult.newDevice).toBeDefined();
+      expect(authResult.newDevice!.key).toBeDefined();
+      expect(authResult.newDevice!.groupKey).toBeDefined();
+      expect(authResult.newDevice!.password).toBeDefined();
+    } else {
+      expect(authResult.newDevice).toBeUndefined();
+    }
+
     // expect(authResult.newDevice!.password).toBeDefined();
 
     console.log(JSON.stringify(authResult, null, 2));

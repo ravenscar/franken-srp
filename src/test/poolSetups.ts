@@ -1,4 +1,9 @@
-import { UserPoolProps, UserPoolClientProps, Mfa } from "@aws-cdk/aws-cognito";
+import {
+  UserPoolProps,
+  UserPoolClientProps,
+  Mfa,
+  CfnUserPool,
+} from "@aws-cdk/aws-cognito";
 
 type TClientPropsWithoutUserpool = Omit<UserPoolClientProps, "userPool">;
 
@@ -14,12 +19,16 @@ export const getPoolRegionSlug = (name: string) =>
 export const getPoolClientIdSlug = (name: string) =>
   `${name}${USER_POOL_CLIENT_ID_SLUG}`;
 
-export type THint = "MFA_ENABLED";
+export type THint =
+  | "MFA_ENABLED"
+  | "REMEMBER_DEVICES_OPT"
+  | "REMEMBER_DEVICES_YES";
 
 export type TPoolSetup = {
   name: string;
   poolProps: UserPoolProps;
   clientProps: TClientPropsWithoutUserpool;
+  CfnUserPoolProps: Partial<CfnUserPool>;
   hints: THint[];
 };
 
@@ -28,6 +37,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitVanilla",
     poolProps: {},
     clientProps: {},
+    CfnUserPoolProps: {},
     hints: [],
   },
   {
@@ -36,6 +46,7 @@ export const poolSetups: TPoolSetup[] = [
       mfa: Mfa.OPTIONAL,
       mfaSecondFactor: { sms: false, otp: true },
     },
+    CfnUserPoolProps: {},
     clientProps: {},
     hints: [],
   },
@@ -45,7 +56,30 @@ export const poolSetups: TPoolSetup[] = [
       mfa: Mfa.OPTIONAL,
       mfaSecondFactor: { sms: false, otp: true },
     },
+    CfnUserPoolProps: {},
     clientProps: {},
     hints: ["MFA_ENABLED"],
+  },
+  {
+    name: "FitOptionalDevices",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["REMEMBER_DEVICES_OPT"],
+  },
+  {
+    name: "FitRememberDevices",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: false,
+      },
+    },
+    clientProps: {},
+    hints: ["REMEMBER_DEVICES_YES"],
   },
 ];
