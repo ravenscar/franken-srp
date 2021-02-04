@@ -82,4 +82,32 @@ export const poolSetups: TPoolSetup[] = [
     clientProps: {},
     hints: ["REMEMBER_DEVICES_YES"],
   },
+  {
+    name: "FitOptionalDevicesAndMfa",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["REMEMBER_DEVICES_OPT", "MFA_ENABLED"],
+  },
+  {
+    name: "FitRememberDevicesAndMfa",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: false,
+      },
+    },
+    clientProps: {},
+    hints: ["REMEMBER_DEVICES_YES", "MFA_ENABLED"],
+  },
 ];
