@@ -8,7 +8,7 @@ import {
 type TRespondSmsMfaParams = {
   region: string;
   clientId: string;
-  challengeResponses: { username: string; mfaCode: string };
+  challengeResponses: { username: string; mfaCode: string; deviceKey?: string };
   session: string;
 };
 
@@ -28,6 +28,7 @@ export const respondSmsMfa = async ({
       ChallengeResponses: {
         USERNAME: challengeResponses.username,
         SMS_MFA_CODE: challengeResponses.mfaCode,
+        DEVICE_KEY: challengeResponses.deviceKey,
       },
     },
   });
