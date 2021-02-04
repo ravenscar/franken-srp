@@ -6,32 +6,11 @@ import { poolSetups } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 import { getUserByPool } from "./userHelper";
 
-/*
-export const callRefresh = async (refreshToken: string) => {
-  const device = undefined;
-
-  const result = (await refresh({
-    region: userPoolParams.region,
-    clientId: userPoolParams.clientId,
-    refreshToken,
-    deviceKey: device,
-  })) as any;
-  console.log(result.AuthenticationResult);
-  if (result.AuthenticationResult) {
-    const accToken = result.AuthenticationResult.AccessToken;
-    if (accToken) {
-      console.log();
-      if (window.parent === window) {
-        console.log("top level window");
-        window.location.href = `/tokenInfo.html#${accToken}`;
-      } else {
-        console.log("sub window");
-        window.parent.location.hash = accToken;
-      }
-    }
-  }
+type TDeviceInfo = {
+  key: string;
+  groupKey: string;
+  password: string;
 };
-*/
 
 const expectResult = (step: TAuthStep, code: string) => {
   if (step.code !== code) {
@@ -56,63 +35,147 @@ const getConfig = async (name: string) => {
   return { poolId, region, clientId, username, password, secretCode };
 };
 
-for (const setup of poolSetups) {
-  it(`can login using pool ${setup.name}`, async () => {
-    const {
-      poolId,
-      region,
-      clientId,
-      username,
-      password,
-      secretCode,
-    } = await getConfig(setup.name);
+type UnPromisify<T> = T extends Promise<infer U> ? U : T;
+type TConfig = UnPromisify<ReturnType<typeof getConfig>>;
 
-    const login = srpLogin({
-      region,
-      clientId,
-      userPoolId: poolId,
-      username: username,
-      password: password,
-      device: undefined,
-      autoConfirmDevice: true,
+for (const setup of poolSetups) {
+  describe(`using pool ${setup.name}`, () => {
+    let setConfig: (config: TConfig) => void;
+    let setDevice: (device?: TDeviceInfo) => void;
+    let setRefreshToken: (device: string) => void;
+    let totpTime = Math.floor(Date.now() / 1000 / 30);
+
+    const configP = new Promise<TConfig>((res) => (setConfig = res));
+
+    let deviceP = new Promise<TDeviceInfo | undefined>(
+      (res) => (setDevice = res)
+    );
+    let refreshTokenP = new Promise<string>((res) => (setRefreshToken = res));
+
+    beforeAll(async () => {
+      setConfig(await getConfig(setup.name));
     });
 
-    let response = await login.next();
+    it(`can login`, async () => {
+      const {
+        poolId,
+        region,
+        clientId,
+        username,
+        password,
+        secretCode,
+      } = await configP;
 
-    if (setup.hints.includes("MFA_ENABLED")) {
-      expect(response.done).toEqual(false);
-      expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
+      const login = srpLogin({
+        region,
+        clientId,
+        userPoolId: poolId,
+        username: username,
+        password: password,
+        device: undefined,
+        autoConfirmDevice: true,
+      });
 
-      expect(secretCode).toBeDefined();
-      response = await login.next(getTotp(secretCode!)!);
-    }
+      let response = await login.next();
 
-    expect(response.done).toEqual(true);
+      if (setup.hints.includes("MFA_ENABLED")) {
+        expect(response.done).toEqual(false);
+        expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
-    expectResult(response.value, "TOKENS");
+        expect(secretCode).toBeDefined();
+        response = await login.next(getTotp(secretCode!, totpTime)!);
+      }
 
-    expect(response.value.response).toBeDefined();
-    const authResult = response.value.response!;
+      expect(response.done).toEqual(true);
 
-    expect(authResult.tokens.accessToken).toBeDefined();
-    expect(authResult.tokens.idToken).toBeDefined();
-    expect(authResult.tokens.refreshToken).toBeDefined();
+      expectResult(response.value, "TOKENS");
 
-    if (
-      setup.hints.includes("REMEMBER_DEVICES_OPT") ||
-      setup.hints.includes("REMEMBER_DEVICES_YES")
-    ) {
-      expect(authResult.newDevice).toBeDefined();
-      expect(authResult.newDevice!.key).toBeDefined();
-      expect(authResult.newDevice!.groupKey).toBeDefined();
-      expect(authResult.newDevice!.password).toBeDefined();
-    } else {
-      expect(authResult.newDevice).toBeUndefined();
-    }
+      expect(response.value.response).toBeDefined();
+      const authResult = response.value.response!;
 
-    // expect(authResult.newDevice!.password).toBeDefined();
+      expect(authResult.tokens.accessToken).toBeDefined();
+      expect(authResult.tokens.idToken).toBeDefined();
+      expect(authResult.tokens.refreshToken).toBeDefined();
+      setRefreshToken(authResult.tokens.refreshToken);
 
-    console.log(JSON.stringify(authResult, null, 2));
+      setDevice(authResult.newDevice!);
+
+      if (
+        setup.hints.includes("REMEMBER_DEVICES_OPT") ||
+        setup.hints.includes("REMEMBER_DEVICES_YES")
+      ) {
+        expect(authResult.newDevice).toBeDefined();
+        expect(authResult.newDevice!.key).toBeDefined();
+        expect(authResult.newDevice!.groupKey).toBeDefined();
+        expect(authResult.newDevice!.password).toBeDefined();
+      } else {
+        expect(authResult.newDevice).toBeUndefined();
+      }
+    });
+
+    it(`can refresh`, async () => {
+      const { region, clientId } = await configP;
+
+      const device = await deviceP;
+
+      const refreshResult = await refresh({
+        region,
+        clientId,
+        refreshToken: await refreshTokenP,
+        deviceKey: device && device.key,
+      });
+
+      expect(refreshResult).toBeDefined();
+      expect(refreshResult.accessToken).toBeDefined();
+      expect(refreshResult.idToken).toBeDefined();
+    });
+
+    it("can reuse the device", async () => {
+      const device = (await deviceP) as any;
+      if (device) {
+        const {
+          poolId,
+          region,
+          clientId,
+          username,
+          password,
+          secretCode,
+        } = await configP;
+
+        const login = srpLogin({
+          region,
+          clientId,
+          userPoolId: poolId,
+          username: username,
+          password: password,
+          device,
+          autoConfirmDevice: true,
+        });
+
+        let response = await login.next();
+
+        if (setup.hints.includes("MFA_ENABLED")) {
+          expect(response.done).toEqual(false);
+          expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
+
+          expect(secretCode).toBeDefined();
+          response = await login.next(getTotp(secretCode!, totpTime + 1)!);
+        }
+
+        expect(response.done).toEqual(true);
+
+        expectResult(response.value, "TOKENS");
+
+        expect(response.value.response).toBeDefined();
+        const authResult = response.value.response!;
+
+        expect(authResult.tokens.accessToken).toBeDefined();
+        expect(authResult.tokens.idToken).toBeDefined();
+        expect(authResult.tokens.refreshToken).toBeDefined();
+
+        expect(authResult.newDevice).not.toBeDefined();
+      }
+    });
   });
 }
 
