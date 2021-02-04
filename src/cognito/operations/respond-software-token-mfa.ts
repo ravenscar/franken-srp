@@ -8,7 +8,7 @@ import {
 type TRespondSoftwareTokenMfaParams = {
   region: string;
   clientId: string;
-  challengeResponses: { username: string; mfaCode: string };
+  challengeResponses: { username: string; mfaCode: string; deviceKey?: string };
   session: string;
 };
 
@@ -28,6 +28,7 @@ export const respondSoftwareTokenMfa = async ({
       ChallengeResponses: {
         USERNAME: challengeResponses.username,
         SOFTWARE_TOKEN_MFA_CODE: challengeResponses.mfaCode,
+        DEVICE_KEY: challengeResponses.deviceKey,
       },
     },
   });

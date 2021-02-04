@@ -148,6 +148,7 @@ export async function* srpLogin({
         challengeResponses: {
           mfaCode,
           username: responseA.ChallengeParameters.USERNAME,
+          deviceKey: device?.key,
         },
         session: nextResponse.Session,
       });
@@ -180,6 +181,7 @@ export async function* srpLogin({
         challengeResponses: {
           mfaCode,
           username: responseA.ChallengeParameters.USERNAME,
+          deviceKey: device?.key,
         },
         session: nextResponse.Session,
       });
