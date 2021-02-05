@@ -1,4 +1,4 @@
-import { SRPError } from "../../util";
+import { SRPError, noop } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import { guardInitiateUserSrpResponse } from "../types";
 
@@ -8,6 +8,7 @@ type TInitiateUserSRPAuthParams = {
   username: string;
   deviceKey?: string;
   srpA: string;
+  debug?: (trace: any) => void;
 };
 
 export const initiateUserSRPAuth = async ({
@@ -16,6 +17,7 @@ export const initiateUserSRPAuth = async ({
   clientId,
   deviceKey,
   srpA,
+  debug = noop,
 }: TInitiateUserSRPAuthParams) => {
   const response = await cognitoFetch({
     operation: "InitiateAuth",
@@ -29,6 +31,7 @@ export const initiateUserSRPAuth = async ({
         DEVICE_KEY: deviceKey,
       },
     },
+    debug,
   });
 
   if (!guardInitiateUserSrpResponse(response)) {

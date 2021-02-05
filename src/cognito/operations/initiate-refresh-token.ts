@@ -1,4 +1,4 @@
-import { SRPError } from "../../util";
+import { SRPError, noop } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import { guardRefreshResult } from "../types";
 
@@ -7,6 +7,7 @@ type TInitiateRefreshTokenParams = {
   clientId: string;
   deviceKey?: string;
   refreshToken: string;
+  debug?: (trace: any) => void;
 };
 
 export const initiateRefreshToken = async ({
@@ -14,6 +15,7 @@ export const initiateRefreshToken = async ({
   clientId,
   deviceKey,
   refreshToken,
+  debug = noop,
 }: TInitiateRefreshTokenParams) => {
   const response = await cognitoFetch({
     operation: "InitiateAuth",
@@ -26,6 +28,7 @@ export const initiateRefreshToken = async ({
         DEVICE_KEY: deviceKey,
       },
     },
+    debug,
   });
 
   if (!guardRefreshResult(response)) {

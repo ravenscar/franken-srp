@@ -1,5 +1,5 @@
 import { makeDeviceVerifier } from "../../srp";
-import { hexToB64, padHex } from "../../util";
+import { hexToB64, padHex, noop } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 
 type TConfirmDeviceParams = {
@@ -8,6 +8,7 @@ type TConfirmDeviceParams = {
   deviceName?: string;
   deviceKey: string;
   deviceGroupKey: string;
+  debug?: (trace: any) => void;
 };
 
 export const confirmDevice = async ({
@@ -16,13 +17,14 @@ export const confirmDevice = async ({
   deviceKey,
   deviceGroupKey,
   deviceName,
+  debug = noop,
 }: TConfirmDeviceParams) => {
   const { salt, verifier, password } = await makeDeviceVerifier(
     deviceGroupKey,
     deviceKey
   );
 
-  await cognitoFetch({
+  const rawResult = await cognitoFetch({
     region,
     operation: "ConfirmDevice",
     args: {
@@ -34,7 +36,9 @@ export const confirmDevice = async ({
         PasswordVerifier: verifier,
       },
     },
+    debug,
   });
+  debug({ rawResult });
 
   // TODO: this needs a guard for the response
 
@@ -42,5 +46,7 @@ export const confirmDevice = async ({
     deviceKey,
     deviceGroupKey,
     devicePassword: password,
+    confirmed: true,
+    userConfirmationNecessary: rawResult.UserConfirmationNecessary,
   };
 };

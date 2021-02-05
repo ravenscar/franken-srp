@@ -1,9 +1,10 @@
-import { SRPError } from "../util";
+import { SRPError, noop } from "../util";
 
 export const cognitoFetch = async ({
   operation,
   region,
   args,
+  debug = noop,
 }: TCognitoFetchArgs & { region: string }) => {
   const endpoint = `https://cognito-idp.${region}.amazonaws.com/`;
 
@@ -12,6 +13,10 @@ export const cognitoFetch = async ({
     "X-Amz-Target": `AWSCognitoIdentityProviderService.${operation}`,
     "X-Amz-User-Agent": "amazon",
   };
+
+  debug(`cognitoFetch called ${operation} ${region} ${endpoint}`);
+  debug({ headers });
+  debug({ args });
 
   const response = await fetch(endpoint, {
     headers,
@@ -22,7 +27,10 @@ export const cognitoFetch = async ({
   });
 
   if (response.ok) {
-    return response.json();
+    const jsonResponse = await response.json();
+    debug({ jsonResponse });
+
+    return jsonResponse;
   }
 
   let errorText = response.statusText;
@@ -102,7 +110,7 @@ type TRespondToAuthChallengeParams =
       };
     };
 
-type TCognitoFetchArgs =
+type TCognitoFetchArgs = { debug?: (trace: any) => void } & (
   | {
       operation: "InitiateAuth";
       args: TInitiateAuthParams & { ClientId: string };
@@ -137,4 +145,5 @@ type TCognitoFetchArgs =
       args: {
         AccessToken: string;
       };
-    };
+    }
+);

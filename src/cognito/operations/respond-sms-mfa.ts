@@ -1,4 +1,4 @@
-import { SRPError } from "../../util";
+import { SRPError, noop } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
@@ -10,6 +10,7 @@ type TRespondSmsMfaParams = {
   clientId: string;
   challengeResponses: { username: string; mfaCode: string; deviceKey?: string };
   session: string;
+  debug?: (trace: any) => void;
 };
 
 export const respondSmsMfa = async ({
@@ -17,6 +18,7 @@ export const respondSmsMfa = async ({
   clientId,
   challengeResponses,
   session,
+  debug = noop,
 }: TRespondSmsMfaParams) => {
   const response = await cognitoFetch({
     operation: "RespondToAuthChallenge",
@@ -31,6 +33,7 @@ export const respondSmsMfa = async ({
         DEVICE_KEY: challengeResponses.deviceKey,
       },
     },
+    debug,
   });
 
   if (

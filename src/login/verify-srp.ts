@@ -1,7 +1,7 @@
 import { respondPasswordVerifier } from "../cognito";
 import { TSRPChallengeParameters } from "../cognito/types";
 import { calculateClaimSig } from "../srp";
-import { stripPoolRegion } from "../util";
+import { stripPoolRegion, noop } from "../util";
 
 type TVerifySrp = {
   region: string;
@@ -13,6 +13,7 @@ type TVerifySrp = {
   challengeParameters: TSRPChallengeParameters;
   deviceKey: string | undefined;
   deviceGroupKey: string | undefined;
+  debug?: (trace: any) => void;
 };
 
 export const verifySrp = async ({
@@ -25,6 +26,7 @@ export const verifySrp = async ({
   challengeParameters,
   deviceKey,
   deviceGroupKey,
+  debug = noop,
 }: TVerifySrp) => {
   const groupId =
     challengeParameters.DEVICE_KEY && deviceGroupKey
@@ -43,6 +45,7 @@ export const verifySrp = async ({
     challengeParameters
   );
 
+  debug("calling respondPasswordVerifier");
   return await respondPasswordVerifier({
     region,
     clientId,
@@ -51,5 +54,6 @@ export const verifySrp = async ({
     claimSig,
     challengeParameters,
     challengeName,
+    debug,
   });
 };

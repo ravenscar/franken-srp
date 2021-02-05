@@ -50,6 +50,7 @@ export type TSrpLoginParams = {
       }
     | undefined;
   autoConfirmDevice: boolean;
+  debugTracing?: boolean;
 };
 
 export type TSrpLoginResponse = AsyncGenerator<TAuthStep, TAuthStep, string>;
@@ -62,7 +63,20 @@ export async function* srpLogin({
   password,
   device,
   autoConfirmDevice,
+  debugTracing,
 }: TSrpLoginParams): TSrpLoginResponse {
+  const debugTraces: any[] = [];
+  const debug = (trace: any) => {
+    if (debugTracing) {
+      debugTraces.push(trace);
+    }
+  };
+  const printTrace = () => {
+    for (const trace of debugTraces) {
+      console.log(trace);
+    }
+  };
+
   const returnTokens = async ({
     AuthenticationResult: cognitoRes,
   }: TCognitoAuthenticationResultResponse): Promise<TAuthStep> => {
@@ -78,19 +92,37 @@ export async function* srpLogin({
       newDevice: undefined,
     };
 
+    debug("created provisional TAuthResponse");
+    debug({ authResponse });
+
     if (autoConfirmDevice && cognitoRes.NewDeviceMetadata) {
-      const newDevice = await confirmDevice({
+      debug("auto confirming device");
+      const confirmDeviceParams = {
         region,
         accessToken: authResponse.tokens.accessToken,
         deviceKey: cognitoRes.NewDeviceMetadata.DeviceKey,
         deviceGroupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
-      });
+        debug,
+      };
+
+      debug("calling confirmDevice");
+      debug({ callParams: confirmDeviceParams });
+      const newDevice = await confirmDevice(confirmDeviceParams);
+      debug({ response: newDevice });
+
       authResponse.newDevice = {
         key: cognitoRes.NewDeviceMetadata.DeviceKey,
         groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
         password: newDevice.devicePassword,
       };
+    } else {
+      debug("NOT auto confirming device");
     }
+
+    debug("returning TOKENS");
+    debug({ authResponse });
+
+    printTrace();
 
     return {
       code: "TOKENS",
@@ -100,15 +132,20 @@ export async function* srpLogin({
 
   try {
     const { a, A } = await makeSrpSession();
-    const responseA = await initiateUserSRPAuth({
+    const initiateUserSRPAuthParams = {
       region,
       clientId,
       username,
       deviceKey: device?.key,
       srpA: bigIntToHex(A),
-    });
+      debug,
+    };
+    debug("calling initiateUserSRPAuth");
+    debug({ callParams: initiateUserSRPAuthParams });
+    const responseA = await initiateUserSRPAuth(initiateUserSRPAuthParams);
+    debug({ response: responseA });
 
-    let nextResponse = await verifySrp({
+    const verifySrpParams = {
       region,
       userPoolId,
       clientId,
@@ -118,9 +155,17 @@ export async function* srpLogin({
       challengeParameters: responseA.ChallengeParameters,
       deviceKey: device?.key,
       deviceGroupKey: device?.groupKey,
-    });
+      debug,
+    };
+    debug("calling verifySrp");
+    debug({ callParams: verifySrpParams });
+    let nextResponse = await verifySrp(verifySrpParams);
+    debug({ response: nextResponse });
 
     if (guardAuthenticationResultResponse(nextResponse)) {
+      debug(
+        "guardAuthenticationResultResponse returned true, returning tokens"
+      );
       return returnTokens(nextResponse);
     }
 
@@ -151,6 +196,7 @@ export async function* srpLogin({
           deviceKey: device?.key,
         },
         session: nextResponse.Session,
+        debug,
       });
     }
 
@@ -184,6 +230,7 @@ export async function* srpLogin({
           deviceKey: device?.key,
         },
         session: nextResponse.Session,
+        debug,
       });
     }
 
@@ -201,11 +248,13 @@ export async function* srpLogin({
         username:
           responseA.ChallengeParameters.USER_ID_FOR_SRP ||
           responseA.ChallengeParameters.USERNAME,
+        debug,
       });
     }
 
     return returnTokens(nextResponse);
   } catch (error) {
+    printTrace();
     return {
       error,
       code: "ERROR",

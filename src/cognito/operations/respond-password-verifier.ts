@@ -1,4 +1,4 @@
-import { SRPError } from "../../util";
+import { SRPError, noop } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
@@ -16,6 +16,7 @@ type TRespondPasswordVerifierParams = {
   challengeParameters: TSRPChallengeParameters;
   timestamp: string;
   claimSig: string;
+  debug?: (trace: any) => void;
 };
 
 export const respondPasswordVerifier = async ({
@@ -26,6 +27,7 @@ export const respondPasswordVerifier = async ({
   challengeParameters,
   timestamp,
   claimSig,
+  debug = noop,
 }: TRespondPasswordVerifierParams) => {
   const devKey = deviceKey!;
   if (challengeName === "DEVICE_PASSWORD_VERIFIER" && !devKey) {
@@ -51,6 +53,7 @@ export const respondPasswordVerifier = async ({
       },
       Session: undefined,
     },
+    debug,
   });
 
   if (
