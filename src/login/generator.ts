@@ -95,28 +95,39 @@ export async function* srpLogin({
     debug("created provisional TAuthResponse");
     debug({ authResponse });
 
-    if (autoConfirmDevice && cognitoRes.NewDeviceMetadata) {
-      debug("auto confirming device");
-      const confirmDeviceParams = {
-        region,
-        accessToken: authResponse.tokens.accessToken,
-        deviceKey: cognitoRes.NewDeviceMetadata.DeviceKey,
-        deviceGroupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
-        debug,
-      };
-
-      debug("calling confirmDevice");
-      debug({ callParams: confirmDeviceParams });
-      const newDevice = await confirmDevice(confirmDeviceParams);
-      debug({ response: newDevice });
-
+    if (cognitoRes.NewDeviceMetadata) {
       authResponse.newDevice = {
         key: cognitoRes.NewDeviceMetadata.DeviceKey,
         groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
-        password: newDevice.devicePassword,
+        deviceAutoConfirmed: false,
       };
-    } else {
-      debug("NOT auto confirming device");
+
+      if (autoConfirmDevice) {
+        debug("auto confirming device");
+        const confirmDeviceParams = {
+          region,
+          accessToken: authResponse.tokens.accessToken,
+          deviceKey: cognitoRes.NewDeviceMetadata.DeviceKey,
+          deviceGroupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
+          debug,
+        };
+
+        debug("calling confirmDevice");
+        debug({ callParams: confirmDeviceParams });
+        const newDevice = await confirmDevice(confirmDeviceParams);
+        debug({ response: newDevice });
+
+        authResponse.newDevice = {
+          key: cognitoRes.NewDeviceMetadata.DeviceKey,
+          groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
+          password: newDevice.devicePassword,
+          deviceAutoConfirmed: newDevice.deviceAutoConfirmed,
+          userAutoConfirmed: newDevice.userAutoConfirmed,
+          userConfirmationNecessary: newDevice.userConfirmationNecessary,
+        };
+      } else {
+        debug("NOT auto confirming device");
+      }
     }
 
     debug("returning TOKENS");

@@ -46,7 +46,8 @@ export const confirmDevice = async ({
     deviceKey,
     deviceGroupKey,
     devicePassword: password,
-    confirmed: true,
+    deviceAutoConfirmed: true,
+    userAutoConfirmed: false,
     userConfirmationNecessary: rawResult.UserConfirmationNecessary,
   };
 };
