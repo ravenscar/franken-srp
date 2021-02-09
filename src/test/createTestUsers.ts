@@ -111,7 +111,7 @@ const run = async () => {
         password: user.password,
         device: undefined,
         autoConfirmDevice: false,
-        autoUserConfirmation: false,
+        autoRememberDevice: null,
       });
     }
 
