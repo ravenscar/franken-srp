@@ -9,7 +9,10 @@ import { getUserByPool } from "./userHelper";
 type TDeviceInfo = {
   key: string;
   groupKey: string;
-  password: string;
+  password?: string;
+  deviceAutoConfirmed: boolean;
+  userAutoConfirmed?: boolean;
+  userConfirmationNecessary?: boolean;
 };
 
 const expectResult = (step: TAuthStep, code: string) => {
@@ -37,6 +40,13 @@ const getConfig = async (name: string) => {
 
 type UnPromisify<T> = T extends Promise<infer U> ? U : T;
 type TConfig = UnPromisify<ReturnType<typeof getConfig>>;
+
+/*
+const filteredSetups = poolSetups.filter(
+  (ps) =>
+    ps.hints.includes("DEVICES_OPTIONAL") && ps.hints.includes("MFA_ENABLED")
+);
+*/
 
 for (const setup of poolSetups) {
   describe(`using pool ${setup.name}`, () => {
@@ -66,6 +76,16 @@ for (const setup of poolSetups) {
         secretCode,
       } = await configP;
 
+      let autoRememberDevice = null;
+
+      if (!setup.hints.includes("SKIP_REMEMBER_DEVICE")) {
+        if (setup.hints.includes("DONT_REMEMBER_DEVICE")) {
+          autoRememberDevice = "not_remembered" as const;
+        } else {
+          autoRememberDevice = "remembered" as const;
+        }
+      }
+
       const login = srpLogin({
         region,
         clientId,
@@ -74,6 +94,8 @@ for (const setup of poolSetups) {
         password: password,
         device: undefined,
         autoConfirmDevice: true,
+        autoRememberDevice,
+        debugTracing: false,
       });
 
       let response = await login.next();
@@ -100,14 +122,29 @@ for (const setup of poolSetups) {
 
       setDevice(authResult.newDevice!);
 
-      if (
-        setup.hints.includes("REMEMBER_DEVICES_OPT") ||
-        setup.hints.includes("REMEMBER_DEVICES_YES")
-      ) {
+      if (setup.hints.includes("TEST_DEVICES")) {
         expect(authResult.newDevice).toBeDefined();
         expect(authResult.newDevice!.key).toBeDefined();
         expect(authResult.newDevice!.groupKey).toBeDefined();
         expect(authResult.newDevice!.password).toBeDefined();
+        expect(authResult.newDevice!.deviceAutoConfirmed).toBe(true);
+
+        if (setup.hints.includes("DEVICES_OPTIONAL")) {
+          if (setup.hints.includes("SKIP_REMEMBER_DEVICE")) {
+            expect(authResult.newDevice!.userConfirmationNecessary).toBe(true);
+            expect(authResult.newDevice!.deviceAutoRemembered).toBeUndefined();
+          } else if (setup.hints.includes("DONT_REMEMBER_DEVICE")) {
+            expect(authResult.newDevice!.userConfirmationNecessary).toBe(true);
+            expect(authResult.newDevice!.deviceAutoRemembered).toBe(
+              "not_remembered"
+            );
+          } else {
+            expect(authResult.newDevice!.userConfirmationNecessary).toBe(false);
+            expect(authResult.newDevice!.deviceAutoRemembered).toBe(
+              "remembered"
+            );
+          }
+        }
       } else {
         expect(authResult.newDevice).toBeUndefined();
       }
@@ -130,52 +167,59 @@ for (const setup of poolSetups) {
       expect(refreshResult.idToken).toBeDefined();
     });
 
-    it("can reuse the device", async () => {
-      const device = (await deviceP) as any;
-      if (device) {
-        const {
-          poolId,
-          region,
-          clientId,
-          username,
-          password,
-          secretCode,
-        } = await configP;
+    if (setup.hints.includes("TEST_DEVICES")) {
+      it("can reuse the device", async () => {
+        const device = (await deviceP) as any;
+        if (device) {
+          const {
+            poolId,
+            region,
+            clientId,
+            username,
+            password,
+            secretCode,
+          } = await configP;
 
-        const login = srpLogin({
-          region,
-          clientId,
-          userPoolId: poolId,
-          username: username,
-          password: password,
-          device,
-          autoConfirmDevice: true,
-        });
+          const login = srpLogin({
+            region,
+            clientId,
+            userPoolId: poolId,
+            username: username,
+            password: password,
+            device,
+            autoConfirmDevice: true,
+            autoRememberDevice: "remembered",
+          });
 
-        let response = await login.next();
+          let response = await login.next();
 
-        if (setup.hints.includes("MFA_ENABLED")) {
-          expect(response.done).toEqual(false);
-          expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
+          if (setup.hints.includes("MFA_ENABLED")) {
+            expect(response.done).toEqual(false);
+            expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
-          expect(secretCode).toBeDefined();
-          response = await login.next(getTotp(secretCode!, totpTime + 1)!);
+            expect(secretCode).toBeDefined();
+            response = await login.next(getTotp(secretCode!, totpTime + 1)!);
+          }
+
+          expect(response.done).toEqual(true);
+
+          expectResult(response.value, "TOKENS");
+
+          expect(response.value.response).toBeDefined();
+          const authResult = response.value.response!;
+
+          expect(authResult.tokens.accessToken).toBeDefined();
+          expect(authResult.tokens.idToken).toBeDefined();
+          expect(authResult.tokens.refreshToken).toBeDefined();
+
+          expect(authResult.newDevice).not.toBeDefined();
         }
-
-        expect(response.done).toEqual(true);
-
-        expectResult(response.value, "TOKENS");
-
-        expect(response.value.response).toBeDefined();
-        const authResult = response.value.response!;
-
-        expect(authResult.tokens.accessToken).toBeDefined();
-        expect(authResult.tokens.idToken).toBeDefined();
-        expect(authResult.tokens.refreshToken).toBeDefined();
-
-        expect(authResult.newDevice).not.toBeDefined();
-      }
-    });
+      });
+    } else {
+      it.skip("can reuse the device", async () => {
+        // no device
+      });
+    }
   });
 }
 
@@ -192,6 +236,7 @@ it("fails login with fatal error if bad username", async () => {
     password: password,
     device: undefined,
     autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
   });
 
   const result = await login.next();
@@ -214,6 +259,7 @@ it("fails login with fatal error if bad password", async () => {
     password: "BAD PASSWORD",
     device: undefined,
     autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
   });
 
   const result = await login.next();

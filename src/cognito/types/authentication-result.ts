@@ -30,7 +30,7 @@ export type TAuthResponse = {
     groupKey: string;
     password?: string;
     deviceAutoConfirmed: boolean;
-    userAutoConfirmed?: boolean;
+    deviceAutoRemembered?: "remembered" | "not_remembered";
     userConfirmationNecessary?: boolean;
   };
 };

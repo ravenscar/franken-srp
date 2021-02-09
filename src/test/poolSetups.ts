@@ -21,8 +21,10 @@ export const getPoolClientIdSlug = (name: string) =>
 
 export type THint =
   | "MFA_ENABLED"
-  | "REMEMBER_DEVICES_OPT"
-  | "REMEMBER_DEVICES_YES";
+  | "TEST_DEVICES"
+  | "DEVICES_OPTIONAL"
+  | "DONT_REMEMBER_DEVICE"
+  | "SKIP_REMEMBER_DEVICE";
 
 export type TPoolSetup = {
   name: string;
@@ -69,7 +71,29 @@ export const poolSetups: TPoolSetup[] = [
       },
     },
     clientProps: {},
-    hints: ["REMEMBER_DEVICES_OPT"],
+    hints: ["TEST_DEVICES", "DEVICES_OPTIONAL"],
+  },
+  {
+    name: "FitOptionalDevicesSkipRemembered",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["TEST_DEVICES", "DEVICES_OPTIONAL", "SKIP_REMEMBER_DEVICE"],
+  },
+  {
+    name: "FitOptionalDevicesNotRemembered",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["TEST_DEVICES", "DEVICES_OPTIONAL", "DONT_REMEMBER_DEVICE"],
   },
   {
     name: "FitRememberDevices",
@@ -80,7 +104,7 @@ export const poolSetups: TPoolSetup[] = [
       },
     },
     clientProps: {},
-    hints: ["REMEMBER_DEVICES_YES"],
+    hints: ["TEST_DEVICES"],
   },
   {
     name: "FitOptionalDevicesAndMfa",
@@ -94,7 +118,7 @@ export const poolSetups: TPoolSetup[] = [
       },
     },
     clientProps: {},
-    hints: ["REMEMBER_DEVICES_OPT", "MFA_ENABLED"],
+    hints: ["TEST_DEVICES", "DEVICES_OPTIONAL", "MFA_ENABLED"],
   },
   {
     name: "FitRememberDevicesAndMfa",
@@ -108,6 +132,6 @@ export const poolSetups: TPoolSetup[] = [
       },
     },
     clientProps: {},
-    hints: ["REMEMBER_DEVICES_YES", "MFA_ENABLED"],
+    hints: ["TEST_DEVICES", "MFA_ENABLED"],
   },
 ];

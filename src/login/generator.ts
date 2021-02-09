@@ -50,6 +50,9 @@ export type TSrpLoginParams = {
       }
     | undefined;
   autoConfirmDevice: boolean;
+  autoRememberDevice: Parameters<
+    typeof confirmDevice
+  >["0"]["autoRememberDevice"];
   debugTracing?: boolean;
 };
 
@@ -63,6 +66,7 @@ export async function* srpLogin({
   password,
   device,
   autoConfirmDevice,
+  autoRememberDevice,
   debugTracing,
 }: TSrpLoginParams): TSrpLoginResponse {
   const debugTraces: any[] = [];
@@ -109,6 +113,7 @@ export async function* srpLogin({
           accessToken: authResponse.tokens.accessToken,
           deviceKey: cognitoRes.NewDeviceMetadata.DeviceKey,
           deviceGroupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
+          autoRememberDevice,
           debug,
         };
 
@@ -122,7 +127,7 @@ export async function* srpLogin({
           groupKey: cognitoRes.NewDeviceMetadata.DeviceGroupKey,
           password: newDevice.devicePassword,
           deviceAutoConfirmed: newDevice.deviceAutoConfirmed,
-          userAutoConfirmed: newDevice.userAutoConfirmed,
+          deviceAutoRemembered: newDevice.deviceAutoRemembered,
           userConfirmationNecessary: newDevice.userConfirmationNecessary,
         };
       } else {

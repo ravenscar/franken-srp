@@ -8,6 +8,7 @@ type TConfirmDeviceParams = {
   deviceName?: string;
   deviceKey: string;
   deviceGroupKey: string;
+  autoRememberDevice: "remembered" | "not_remembered" | null;
   debug?: (trace: any) => void;
 };
 
@@ -17,6 +18,7 @@ export const confirmDevice = async ({
   deviceKey,
   deviceGroupKey,
   deviceName,
+  autoRememberDevice,
   debug = noop,
 }: TConfirmDeviceParams) => {
   const { salt, verifier, password } = await makeDeviceVerifier(
@@ -47,7 +49,7 @@ export const confirmDevice = async ({
     deviceGroupKey,
     devicePassword: password,
     deviceAutoConfirmed: true,
-    userAutoConfirmed: false,
+    deviceAutoRemembered: "not_remembered" as const, // not_remembered remembered null
     userConfirmationNecessary: rawResult.UserConfirmationNecessary,
   };
 };
