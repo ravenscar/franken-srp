@@ -24,7 +24,8 @@ export type THint =
   | "TEST_DEVICES"
   | "DEVICES_OPTIONAL"
   | "DONT_REMEMBER_DEVICE"
-  | "SKIP_REMEMBER_DEVICE";
+  | "SKIP_REMEMBER_DEVICE"
+  | "SKIP_MFA_REMEMBERED";
 
 export type TPoolSetup = {
   name: string;
@@ -133,5 +134,80 @@ export const poolSetups: TPoolSetup[] = [
     },
     clientProps: {},
     hints: ["TEST_DEVICES", "MFA_ENABLED"],
+  },
+  {
+    name: "FitOptionalDevicesAndMfaNotRememberedSkipKnown",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+        challengeRequiredOnNewDevice: true,
+      },
+    },
+    clientProps: {},
+    hints: [
+      "TEST_DEVICES",
+      "DEVICES_OPTIONAL",
+      "DONT_REMEMBER_DEVICE",
+      "SKIP_MFA_REMEMBERED",
+    ],
+  },
+  {
+    name: "FitOptionalDevicesAndMfaSkipRememberedSkipKnown",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+        challengeRequiredOnNewDevice: true,
+      },
+    },
+    clientProps: {},
+    hints: [
+      "TEST_DEVICES",
+      "DEVICES_OPTIONAL",
+      "SKIP_REMEMBER_DEVICE",
+      "SKIP_MFA_REMEMBERED",
+    ],
+  },
+  {
+    name: "FitOptionalDevicesAndMfaSkipKnown",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+        challengeRequiredOnNewDevice: true,
+      },
+    },
+    clientProps: {},
+    hints: [
+      "TEST_DEVICES",
+      "DEVICES_OPTIONAL",
+      "MFA_ENABLED",
+      "SKIP_MFA_REMEMBERED",
+    ],
+  },
+  {
+    name: "FitRememberDevicesAndMfaSkipKnown",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: false,
+        challengeRequiredOnNewDevice: true,
+      },
+    },
+    clientProps: {},
+    hints: ["TEST_DEVICES", "MFA_ENABLED", "SKIP_MFA_REMEMBERED"],
   },
 ];

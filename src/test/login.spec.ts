@@ -193,7 +193,14 @@ for (const setup of poolSetups) {
 
           let response = await login.next();
 
-          if (setup.hints.includes("MFA_ENABLED")) {
+          const skipMfaKnownDevice =
+            setup.hints.includes("SKIP_MFA_REMEMBERED") &&
+            !(
+              setup.hints.includes("DONT_REMEMBER_DEVICE") ||
+              setup.hints.includes("SKIP_REMEMBER_DEVICE")
+            );
+
+          if (!skipMfaKnownDevice && setup.hints.includes("MFA_ENABLED")) {
             expect(response.done).toEqual(false);
             expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
