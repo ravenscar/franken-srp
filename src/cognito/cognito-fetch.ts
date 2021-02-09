@@ -135,6 +135,14 @@ type TCognitoFetchArgs = { debug?: (trace: any) => void } & (
       };
     }
   | {
+      operation: "UpdateDeviceStatus";
+      args: {
+        AccessToken: string;
+        DeviceKey: string;
+        DeviceRememberedStatus: "not_remembered" | "remembered";
+      };
+    }
+  | {
       operation: "GetUser";
       args: {
         AccessToken: string;

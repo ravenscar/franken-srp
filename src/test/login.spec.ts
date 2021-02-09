@@ -134,7 +134,7 @@ for (const setup of poolSetups) {
             expect(authResult.newDevice!.userConfirmationNecessary).toBe(true);
             expect(authResult.newDevice!.deviceAutoRemembered).toBeUndefined();
           } else if (setup.hints.includes("DONT_REMEMBER_DEVICE")) {
-            expect(authResult.newDevice!.userConfirmationNecessary).toBe(true);
+            expect(authResult.newDevice!.userConfirmationNecessary).toBe(false);
             expect(authResult.newDevice!.deviceAutoRemembered).toBe(
               "not_remembered"
             );

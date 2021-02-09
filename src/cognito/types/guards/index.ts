@@ -7,3 +7,4 @@ export * from "./guard-refresh-result";
 export * from "./guard-software-token-mfa-response";
 export * from "./guard-sms-token-mfa-response";
 export * from "./guard-srp-challenge-parameters";
+export * from "./guard-confirm-device-response";

@@ -1,6 +1,7 @@
 import { makeDeviceVerifier } from "../../srp";
-import { hexToB64, padHex, noop } from "../../util";
+import { hexToB64, padHex, noop, SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
+import { guardConfirmDeviceResponse } from "../types";
 
 type TConfirmDeviceParams = {
   accessToken: string;
@@ -26,7 +27,7 @@ export const confirmDevice = async ({
     deviceKey
   );
 
-  const rawResult = await cognitoFetch({
+  const response = await cognitoFetch({
     region,
     operation: "ConfirmDevice",
     args: {
@@ -40,16 +41,43 @@ export const confirmDevice = async ({
     },
     debug,
   });
-  debug({ rawResult });
+  debug({ response });
 
-  // TODO: this needs a guard for the response
+  if (!guardConfirmDeviceResponse(response)) {
+    throw new SRPError(
+      "Unexpected Response",
+      500,
+      "guardConfirmDeviceResponse",
+      { response }
+    );
+  }
+
+  let deviceAutoRemembered: undefined | "not_remembered" | "remembered";
+
+  if (response.UserConfirmationNecessary && autoRememberDevice) {
+    const response = await cognitoFetch({
+      region,
+      operation: "UpdateDeviceStatus",
+      args: {
+        AccessToken: accessToken,
+        DeviceKey: deviceKey,
+        DeviceRememberedStatus: autoRememberDevice,
+      },
+      debug,
+    });
+    debug({ response });
+    // No guard here as docs say no output
+    deviceAutoRemembered = autoRememberDevice;
+  }
 
   return {
     deviceKey,
     deviceGroupKey,
     devicePassword: password,
     deviceAutoConfirmed: true,
-    deviceAutoRemembered: "not_remembered" as const, // not_remembered remembered null
-    userConfirmationNecessary: rawResult.UserConfirmationNecessary,
+    deviceAutoRemembered,
+    userConfirmationNecessary: deviceAutoRemembered
+      ? false
+      : response.UserConfirmationNecessary,
   };
 };
