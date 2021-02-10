@@ -1,9 +1,9 @@
 {
   "name": "franken-srp",
-  "version": "0.2.1",
+  "version": "0.2.0",
   "description": "low level implementation lib for use with aws cognito srp login",
-  "browser": "dist/index.js",
-  "types": "dist/index.ts",
+  "browser": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo dist",
     "build": "npm run clean && tsc --build --force",
