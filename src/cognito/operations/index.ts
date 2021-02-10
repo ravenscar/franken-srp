@@ -6,3 +6,4 @@ export { respondDeviceSRPAuth } from "./respond-device-srp-auth";
 export { respondPasswordVerifier } from "./respond-password-verifier";
 export { respondSoftwareTokenMfa } from "./respond-software-token-mfa";
 export { respondSmsMfa } from "./respond-sms-mfa";
+export { respondNewPasswordRequired } from "./respond-new-password-required";

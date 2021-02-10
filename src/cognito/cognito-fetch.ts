@@ -76,6 +76,13 @@ type TRespondToAuthChallengeParams =
       };
     }
   | {
+      ChallengeName: "NEW_PASSWORD_REQUIRED";
+      ChallengeResponses: {
+        USERNAME: string;
+        NEW_PASSWORD: string;
+      };
+    }
+  | {
       ChallengeName: "DEVICE_SRP_AUTH";
       ChallengeResponses: {
         USERNAME: string;

@@ -1,12 +1,14 @@
 import {
   confirmDevice,
   initiateUserSRPAuth,
+  respondNewPasswordRequired,
   respondSmsMfa,
   respondSoftwareTokenMfa,
 } from "../cognito";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
+  guardNewPasswordRequired,
   guardSmsMfaResponse,
   guardSoftwareTokenMfaResponse,
 } from "../cognito/types";
@@ -183,6 +185,27 @@ export async function* srpLogin({
         "guardAuthenticationResultResponse returned true, returning tokens"
       );
       return returnTokens(nextResponse);
+    }
+
+    if (guardNewPasswordRequired(nextResponse)) {
+      const newPassword = yield { code: "NEW_PASSWORD_REQUIRED" };
+
+      if (typeof newPassword !== "string") {
+        throw new SRPError("Invalid new password", 401, "NEW_PASSWORD", {
+          newPassword,
+        });
+      }
+
+      nextResponse = await respondNewPasswordRequired({
+        region,
+        clientId,
+        challengeResponses: {
+          newPassword,
+          username: responseA.ChallengeParameters.USERNAME,
+        },
+        session: nextResponse.Session,
+        debug,
+      });
     }
 
     if (guardSoftwareTokenMfaResponse(nextResponse)) {
