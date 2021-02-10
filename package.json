@@ -1,6 +1,6 @@
 {
   "name": "franken-srp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "low level implementation lib for use with aws cognito srp login",
   "browser": "./dist/index.js",
   "types": "./dist/index.d.ts",
