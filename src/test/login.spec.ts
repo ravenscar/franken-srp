@@ -2,7 +2,7 @@ import { getTotp } from "minimal-cognito-totp";
 
 import { srpLogin, refresh, TAuthStep } from "../";
 
-import { poolSetups } from "./poolSetups";
+import { poolSetups, TEMP_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 import { getUserByPool } from "./userHelper";
 
@@ -20,6 +20,11 @@ const expectResult = (step: TAuthStep, code: string) => {
     console.warn("unexpected result", JSON.stringify(step));
     if (step.error) {
       console.warn(step.error);
+      try {
+        console.warn(JSON.stringify(step.error, null, 2));
+      } catch {
+        // pass
+      }
     }
   }
   expect(step.code).toBe(code);
@@ -43,8 +48,7 @@ type TConfig = UnPromisify<ReturnType<typeof getConfig>>;
 
 /*
 const filteredSetups = poolSetups.filter(
-  (ps) =>
-    ps.hints.includes("DEVICES_OPTIONAL") && ps.hints.includes("MFA_ENABLED")
+  (ps) => ps.hints.includes("RESET_PW_NEEDED") // && ps.hints.includes("MFA_ENABLED")
 );
 */
 
@@ -91,7 +95,9 @@ for (const setup of poolSetups) {
         clientId,
         userPoolId: poolId,
         username: username,
-        password: password,
+        password: setup.hints.includes("RESET_PW_NEEDED")
+          ? TEMP_PASSWORD
+          : password,
         device: undefined,
         autoConfirmDevice: true,
         autoRememberDevice,
@@ -100,9 +106,14 @@ for (const setup of poolSetups) {
 
       let response = await login.next();
 
+      if (setup.hints.includes("RESET_PW_NEEDED")) {
+        expectResult(response.value, "NEW_PASSWORD_REQUIRED");
+        response = await login.next(password);
+      }
+
       if (setup.hints.includes("MFA_ENABLED")) {
+        expectResult(response.value, "SOFTWARE_MFA_REQUIRED");
         expect(response.done).toEqual(false);
-        expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
         expect(secretCode).toBeDefined();
         response = await login.next(getTotp(secretCode!, totpTime)!);
@@ -201,8 +212,8 @@ for (const setup of poolSetups) {
             );
 
           if (!skipMfaKnownDevice && setup.hints.includes("MFA_ENABLED")) {
+            expectResult(response.value, "SOFTWARE_MFA_REQUIRED");
             expect(response.done).toEqual(false);
-            expect(response.value.code).toBe("SOFTWARE_MFA_REQUIRED");
 
             expect(secretCode).toBeDefined();
             response = await login.next(getTotp(secretCode!, totpTime + 1)!);
@@ -221,10 +232,6 @@ for (const setup of poolSetups) {
 
           expect(authResult.newDevice).not.toBeDefined();
         }
-      });
-    } else {
-      it.skip("can reuse the device", async () => {
-        // no device
       });
     }
   });

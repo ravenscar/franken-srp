@@ -25,7 +25,8 @@ export type THint =
   | "DEVICES_OPTIONAL"
   | "DONT_REMEMBER_DEVICE"
   | "SKIP_REMEMBER_DEVICE"
-  | "SKIP_MFA_REMEMBERED";
+  | "SKIP_MFA_REMEMBERED"
+  | "RESET_PW_NEEDED";
 
 export type TPoolSetup = {
   name: string;
@@ -35,6 +36,8 @@ export type TPoolSetup = {
   hints: THint[];
 };
 
+export const TEMP_PASSWORD = "!Passw0rd";
+
 export const poolSetups: TPoolSetup[] = [
   {
     name: "FitVanilla",
@@ -42,6 +45,13 @@ export const poolSetups: TPoolSetup[] = [
     clientProps: {},
     CfnUserPoolProps: {},
     hints: [],
+  },
+  {
+    name: "FitChangePass",
+    poolProps: {},
+    clientProps: {},
+    CfnUserPoolProps: {},
+    hints: ["RESET_PW_NEEDED"],
   },
   {
     name: "FitMfaOptionalAndOff",
@@ -62,6 +72,16 @@ export const poolSetups: TPoolSetup[] = [
     CfnUserPoolProps: {},
     clientProps: {},
     hints: ["MFA_ENABLED"],
+  },
+  {
+    name: "FitMfaOptionalAndOnChangePass",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {},
+    clientProps: {},
+    hints: ["MFA_ENABLED", "RESET_PW_NEEDED"],
   },
   {
     name: "FitOptionalDevices",
@@ -108,6 +128,17 @@ export const poolSetups: TPoolSetup[] = [
     hints: ["TEST_DEVICES"],
   },
   {
+    name: "FitRememberDevicesChangePass",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: false,
+      },
+    },
+    clientProps: {},
+    hints: ["TEST_DEVICES", "RESET_PW_NEEDED"],
+  },
+  {
     name: "FitOptionalDevicesAndMfa",
     poolProps: {
       mfa: Mfa.OPTIONAL,
@@ -134,6 +165,20 @@ export const poolSetups: TPoolSetup[] = [
     },
     clientProps: {},
     hints: ["TEST_DEVICES", "MFA_ENABLED"],
+  },
+  {
+    name: "FitRememberDevicesAndMfaChangePass",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: false,
+      },
+    },
+    clientProps: {},
+    hints: ["TEST_DEVICES", "MFA_ENABLED", "RESET_PW_NEEDED"],
   },
   {
     name: "FitOptionalDevicesAndMfaNotRememberedSkipKnown",

@@ -3,6 +3,7 @@ import { cognitoFetch } from "../cognito-fetch";
 import {
   guardAuthenticationResultResponse,
   guardDeviceChallengeResponse,
+  guardNewPasswordRequired,
   guardSmsMfaResponse,
   guardSoftwareTokenMfaResponse,
   TSRPChallengeParameters,
@@ -60,7 +61,8 @@ export const respondPasswordVerifier = async ({
     !guardAuthenticationResultResponse(response) &&
     !guardDeviceChallengeResponse(response) &&
     !guardSoftwareTokenMfaResponse(response) &&
-    !guardSmsMfaResponse(response)
+    !guardSmsMfaResponse(response) &&
+    !guardNewPasswordRequired(response)
   ) {
     throw new SRPError("Unexpected Response", 500, "respondPasswordVerifier", {
       response,

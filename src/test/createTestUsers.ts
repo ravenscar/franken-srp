@@ -5,7 +5,7 @@ import { getTotp } from "minimal-cognito-totp";
 require("../../polyfills"); // sigh
 
 import { srpLogin } from "../"; // chicken please meet egg
-import { poolSetups } from "./poolSetups";
+import { poolSetups, TEMP_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
 
 const setupMfa = async (...params: Parameters<typeof srpLogin>) => {
@@ -88,6 +88,23 @@ const createUser = async (
   };
 };
 
+const setTempPassword = async (
+  pool: string,
+  region: string,
+  name: string
+): Promise<void> => {
+  const cisp = new CognitoIdentityServiceProvider({ region });
+
+  await cisp
+    .adminSetUserPassword({
+      UserPoolId: pool,
+      Username: name,
+      Password: TEMP_PASSWORD,
+      Permanent: false,
+    })
+    .promise();
+};
+
 const run = async () => {
   const userMappings: Record<string, TUserSecrets> = {};
 
@@ -113,6 +130,10 @@ const run = async () => {
         autoConfirmDevice: false,
         autoRememberDevice: null,
       });
+    }
+
+    if (setup.hints.includes("RESET_PW_NEEDED")) {
+      await setTempPassword(poolId, region, user.username);
     }
 
     userMappings[poolId] = user;
