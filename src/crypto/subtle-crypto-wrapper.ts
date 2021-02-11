@@ -1,5 +1,12 @@
+import {
+  cryptoDigest,
+  cryptoSign,
+  cryptoImportKey,
+  cryptoGetRandomValues,
+} from "../platform/index";
+
 const getCryptoKey = (key: Uint8Array) =>
-  window.crypto.subtle.importKey(
+  cryptoImportKey(
     "raw",
     key,
     {
@@ -10,11 +17,12 @@ const getCryptoKey = (key: Uint8Array) =>
     ["sign", "verify"]
   );
 
-export const signSha256Hmac = async (key: Uint8Array, data: ArrayBuffer) =>
-  window.crypto.subtle.sign("HMAC", await getCryptoKey(key), data);
+export const signSha256Hmac = async (
+  key: Uint8Array,
+  data: ArrayBuffer
+): Promise<ArrayBuffer> => cryptoSign("HMAC", await getCryptoKey(key), data);
 
-export const hashSha256 = (data: ArrayBuffer) =>
-  window.crypto.subtle.digest("SHA-256", data);
+export const hashSha256 = (data: ArrayBuffer) => cryptoDigest("SHA-256", data);
 
 export const getRandomValues = (sizeBytes: number) =>
-  window.crypto.getRandomValues(new Uint8Array(sizeBytes));
+  cryptoGetRandomValues(new Uint8Array(sizeBytes));

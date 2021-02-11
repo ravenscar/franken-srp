@@ -1,3 +1,4 @@
+import { getDeviceName } from "../../platform";
 import { makeDeviceVerifier } from "../../srp";
 import { hexToB64, padHex, noop, SRPError } from "../../util";
 import { cognitoFetch } from "../cognito-fetch";
@@ -33,7 +34,7 @@ export const confirmDevice = async ({
     args: {
       AccessToken: accessToken,
       DeviceKey: deviceKey,
-      DeviceName: deviceName || navigator.userAgent,
+      DeviceName: deviceName || getDeviceName(),
       DeviceSecretVerifierConfig: {
         Salt: hexToB64(padHex(salt)),
         PasswordVerifier: verifier,

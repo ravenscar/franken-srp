@@ -2,8 +2,6 @@ import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { v4 } from "uuid";
 import { getTotp } from "minimal-cognito-totp";
 
-require("../../polyfills"); // sigh
-
 import { srpLogin } from "../"; // chicken please meet egg
 import { poolSetups, TEMP_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";

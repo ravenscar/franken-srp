@@ -1,10 +1,10 @@
 {
   "name": "franken-srp",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "low level implementation lib for use with aws cognito srp login",
-  "browser": "./dist/index.js",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "browser": "dist/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf tsconfig.tsbuildinfo dist",
     "build": "npm run clean && tsc --build --force",
@@ -40,7 +40,6 @@
     "aws-sdk": "^2.831.0",
     "jest": "^26.6.3",
     "minimal-cognito-totp": "^1.0.1",
-    "node-fetch": "^2.6.1",
     "source-map-support": "^0.5.16",
     "ts-jest": "^26.4.4",
     "ts-node": "^9.1.1",

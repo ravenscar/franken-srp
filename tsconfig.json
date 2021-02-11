@@ -11,7 +11,7 @@
     "declarationMap": true,
     "outDir": "dist",
     "rootDir": "src",
-    "lib": ["ES2017", "DOM", "ESNext.BigInt"],
+    "lib": ["ES2017", "ESNext.BigInt"],
     "target": "ES2017",
     "types": ["jest", "node"],
     "noErrorTruncation": true,
