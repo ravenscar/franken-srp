@@ -1,5 +1,6 @@
 declare var window: any;
 
+import { EventEmitter } from "events";
 import { noop, SRPError } from "../util";
 import { isNode } from "./detection";
 
@@ -12,17 +13,13 @@ type TCallCognitoParams = {
 
 type TCallCognito = (params: TCallCognitoParams) => Promise<unknown>;
 
-export const callCognito: TCallCognito = async ({
+const callCognitoBrowser: TCallCognito = async ({
   endpoint,
   headers,
   body,
   debug = noop,
 }) => {
-  const fetchInternal = isNode
-    ? __non_webpack_require__("node-fetch")
-    : window.fetch;
-
-  const response = await fetchInternal(endpoint, {
+  const response = await window.fetch(endpoint, {
     headers,
     body,
     method: "POST",
@@ -50,3 +47,83 @@ export const callCognito: TCallCognito = async ({
 
   throw new SRPError(errorText, response.status, "Fetch", errorDetail);
 };
+
+const callCognitoNode: TCallCognito = async ({
+  endpoint,
+  headers,
+  body,
+  debug,
+}) => {
+  const hostnameMatch = endpoint.match(/^https:\/\/([^/]*)\/?$/);
+  const hostname = hostnameMatch && hostnameMatch[1];
+
+  if (!hostname) {
+    throw new SRPError(
+      `can't determine hostname from ${endpoint}`,
+      500,
+      "Fetch",
+      {}
+    );
+  }
+
+  const options = {
+    hostname,
+    headers,
+    port: 443,
+    path: "/",
+    method: "POST",
+  };
+
+  const https = __non_webpack_require__("https");
+
+  return new Promise<unknown>((resolve, reject) => {
+    let responseCode: number;
+    let responseData = "";
+
+    const req = https.request(
+      options,
+      (im: EventEmitter & { statusCode?: number }) => {
+        if (im.statusCode) {
+          responseCode = im.statusCode;
+        }
+
+        im.on("data", (d) => {
+          responseData = responseData + d;
+        });
+
+        im.on("end", () => {
+          try {
+            const parsed = JSON.parse(responseData);
+            if (responseCode && responseCode >= 200 && responseCode < 300) {
+              resolve(parsed);
+            }
+            reject(
+              new SRPError(parsed?.message, responseCode, "Fetch", {
+                responseData,
+              })
+            );
+          } catch (e) {
+            reject(
+              new SRPError(`error parsing response`, responseCode, "Fetch", {
+                responseData,
+              })
+            );
+          }
+        });
+      }
+    );
+
+    req.on("error", (error: any) => {
+      reject(
+        new SRPError(`error calling cognito`, responseCode, "Fetch", error)
+      );
+    });
+
+    req.write(body);
+    req.end();
+  });
+};
+
+export const callCognito: TCallCognito = isNode
+  ? callCognitoNode
+  : callCognitoBrowser;
