@@ -43,11 +43,11 @@ export const cryptoImportKey: TCryptoImportKey = isNode
         `unimplemented format ${format} or algorithm ${JSON.stringify(alg)}`
       );
     }
-  : window.crypto.subtle.importKey;
+  : window.crypto.subtle.importKey.bind(window.crypto.subtle);
 
 export const cryptoGetRandomValues: TCryptoGetRandomValues = isNode
   ? (buffer) => __non_webpack_require__("crypto").randomFillSync(buffer)
-  : window.crypto.getRandomValues;
+  : window.crypto.getRandomValues.bind(window.crypto);
 
 export const cryptoDigest: TCryptoDigest = isNode
   ? async (alg, data) => {
@@ -58,7 +58,7 @@ export const cryptoDigest: TCryptoDigest = isNode
       }
       throw new Error(`algorithm ${alg} not implemented`);
     }
-  : window.crypto.subtle.digest;
+  : window.crypto.subtle.digest.bind(window.crypto.subtle);
 
 export const cryptoSign: TCryptoSign = isNode
   ? async (alg, key, data) => {
@@ -72,4 +72,4 @@ export const cryptoSign: TCryptoSign = isNode
       }
       throw new Error(`unimplemented algorithm ${alg}`);
     }
-  : window.crypto.subtle.sign;
+  : window.crypto.subtle.sign.bind(window.crypto.subtle);
