@@ -1,4 +1,5 @@
-import { SRPError, noop } from "../util";
+import { noop } from "../util";
+import { callCognito } from "../platform";
 
 export const cognitoFetch = async ({
   operation,
@@ -18,33 +19,12 @@ export const cognitoFetch = async ({
   debug({ headers });
   debug({ args });
 
-  const response = await fetch(endpoint, {
-    headers,
-    method: "POST",
-    mode: "cors",
-    cache: "no-cache",
+  return await callCognito({
+    endpoint,
     body: JSON.stringify(args),
+    headers,
+    debug,
   });
-
-  if (response.ok) {
-    const jsonResponse = await response.json();
-    debug({ jsonResponse });
-
-    return jsonResponse;
-  }
-
-  let errorText = response.statusText;
-  let errorDetail = {};
-
-  try {
-    const json = await response.json();
-    errorDetail = json;
-    errorText = json.message || errorText;
-  } catch (e) {
-    errorDetail = e;
-  }
-
-  throw new SRPError(errorText, response.status, "Fetch", errorDetail);
 };
 
 type TInitiateAuthParams =
