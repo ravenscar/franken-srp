@@ -7,8 +7,8 @@ type TB64Btoa = (data: string) => string;
 
 export const b64Atob: TB64Atob = isNode
   ? (b64Encoded) => Buffer.from(b64Encoded, "base64").toString("binary")
-  : window.atob;
+  : window.atob.bind(window);
 
 export const b64Btoa: TB64Btoa = isNode
   ? (str) => Buffer.from(str, "binary").toString("base64")
-  : window.btoa;
+  : window.btoa.bind(window);

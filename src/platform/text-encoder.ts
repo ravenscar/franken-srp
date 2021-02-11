@@ -8,4 +8,4 @@ interface TTextEncoder {
 
 export const PlatformTextEncoder: { new (): TTextEncoder } = isNode
   ? __non_webpack_require__("util").TextEncoder
-  : window.TextEncoder;
+  : window.TextEncoder.bind(window);
