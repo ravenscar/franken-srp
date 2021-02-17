@@ -1,4 +1,8 @@
-export { getUser, TAuthResponse } from "./cognito";
+export {
+  getUser,
+  TAuthResponse,
+  TInitiateRefreshTokenResponse,
+} from "./cognito";
 export {
   srpLogin,
   refresh,

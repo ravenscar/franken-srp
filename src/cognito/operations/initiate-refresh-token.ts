@@ -10,13 +10,20 @@ type TInitiateRefreshTokenParams = {
   debug?: (trace: any) => void;
 };
 
+export type TInitiateRefreshTokenResponse = {
+  tokenType: string;
+  expiresIn: number;
+  idToken: string;
+  accessToken: string;
+};
+
 export const initiateRefreshToken = async ({
   region,
   clientId,
   deviceKey,
   refreshToken,
   debug = noop,
-}: TInitiateRefreshTokenParams) => {
+}: TInitiateRefreshTokenParams): Promise<TInitiateRefreshTokenResponse> => {
   const response = await cognitoFetch({
     operation: "InitiateAuth",
     region,
