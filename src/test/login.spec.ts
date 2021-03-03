@@ -46,13 +46,9 @@ const getConfig = async (name: string) => {
 type UnPromisify<T> = T extends Promise<infer U> ? U : T;
 type TConfig = UnPromisify<ReturnType<typeof getConfig>>;
 
-/*
-const filteredSetups = poolSetups.filter(
-  (ps) => ps.hints.includes("RESET_PW_NEEDED") // && ps.hints.includes("MFA_ENABLED")
-);
-*/
+const filteredSetups = poolSetups.filter((ps) => !ps.hints.includes("CUSTOM"));
 
-for (const setup of poolSetups) {
+for (const setup of filteredSetups) {
   describe(`using pool ${setup.name}`, () => {
     let setConfig: (config: TConfig) => void;
     let setDevice: (device?: TDeviceInfo) => void;
@@ -281,4 +277,61 @@ it("fails login with fatal error if bad password", async () => {
   expect(result.value.code).toBe("ERROR");
   expect(result.value.error).toBeDefined();
   expect(result.value.error!.message).toMatch("Incorrect username or password");
+});
+
+it("can fail mfa once and still login", async () => {
+  const setup = poolSetups.find(
+    (ps) => ps.hints.includes("CUSTOM") && ps.name === "CustomRetryMFA"
+  );
+
+  if (!setup) {
+    throw new Error("could not find setup");
+  }
+
+  const {
+    poolId,
+    region,
+    clientId,
+    username,
+    password,
+    secretCode,
+  } = await getConfig(setup.name);
+
+  const login = srpLogin({
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: setup.hints.includes("RESET_PW_NEEDED")
+      ? TEMP_PASSWORD
+      : password,
+    device: undefined,
+    autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
+    debugTracing: false,
+  });
+
+  let response = await login.next();
+
+  expectResult(response.value, "SOFTWARE_MFA_REQUIRED");
+  expect(response.done).toEqual(false);
+
+  expect(secretCode).toBeDefined();
+  response = await login.next("999999");
+
+  expectResult(response.value, "SOFTWARE_MFA_REQUIRED");
+  expect(response.done).toEqual(false);
+  expect(response.value.hint).toMatch("Invalid code received for user");
+
+  response = await login.next(getTotp(secretCode!)!);
+  expect(response.done).toEqual(true);
+
+  expectResult(response.value, "TOKENS");
+
+  expect(response.value.response).toBeDefined();
+  const authResult = response.value.response!;
+
+  expect(authResult.tokens.accessToken).toBeDefined();
+  expect(authResult.tokens.idToken).toBeDefined();
+  expect(authResult.tokens.refreshToken).toBeDefined();
 });

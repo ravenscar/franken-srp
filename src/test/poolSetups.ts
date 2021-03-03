@@ -26,7 +26,8 @@ export type THint =
   | "DONT_REMEMBER_DEVICE"
   | "SKIP_REMEMBER_DEVICE"
   | "SKIP_MFA_REMEMBERED"
-  | "RESET_PW_NEEDED";
+  | "RESET_PW_NEEDED"
+  | "CUSTOM";
 
 export type TPoolSetup = {
   name: string;
@@ -254,5 +255,15 @@ export const poolSetups: TPoolSetup[] = [
     },
     clientProps: {},
     hints: ["TEST_DEVICES", "MFA_ENABLED", "SKIP_MFA_REMEMBERED"],
+  },
+  {
+    name: "CustomRetryMFA",
+    poolProps: {
+      mfa: Mfa.OPTIONAL,
+      mfaSecondFactor: { sms: false, otp: true },
+    },
+    CfnUserPoolProps: {},
+    clientProps: {},
+    hints: ["MFA_ENABLED", "CUSTOM"],
   },
 ];
