@@ -209,68 +209,110 @@ export async function* srpLogin({
     }
 
     if (guardSoftwareTokenMfaResponse(nextResponse)) {
-      const mfaCodeIn = yield { code: "SOFTWARE_MFA_REQUIRED" };
+      const session = nextResponse.Session;
+      let valid = false;
+      let hint: string | undefined;
 
-      if (typeof mfaCodeIn !== "string") {
-        throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
+      while (!valid) {
+        const mfaCodeIn = yield {
+          code: "SOFTWARE_MFA_REQUIRED",
+          hint,
+        };
+
+        try {
+          if (typeof mfaCodeIn !== "string") {
+            throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
+          }
+
+          const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
+
+          if (!mfaCode || mfaCode.length !== 6) {
+            throw new SRPError(
+              `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
+              401,
+              "MFA",
+              { mfaCode, mfaCodeIn }
+            );
+          }
+
+          nextResponse = await respondSoftwareTokenMfa({
+            region,
+            clientId,
+            challengeResponses: {
+              mfaCode,
+              username: responseA.ChallengeParameters.USERNAME,
+              deviceKey: device?.key,
+            },
+            session,
+            debug,
+          });
+          valid = true;
+        } catch (e) {
+          if (e.message !== "Invalid code received for user") {
+            throw e;
+          }
+          hint = "Invalid code received for user";
+          // pass
+        }
       }
-
-      const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
-
-      if (!mfaCode || mfaCode.length !== 6) {
-        throw new SRPError(
-          `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
-          401,
-          "MFA",
-          { mfaCode, mfaCodeIn }
-        );
+      if (guardSoftwareTokenMfaResponse(nextResponse)) {
+        throw new Error(`this can't happen but fixes the types`); // hubris
       }
-
-      nextResponse = await respondSoftwareTokenMfa({
-        region,
-        clientId,
-        challengeResponses: {
-          mfaCode,
-          username: responseA.ChallengeParameters.USERNAME,
-          deviceKey: device?.key,
-        },
-        session: nextResponse.Session,
-        debug,
-      });
     }
 
     if (guardSmsMfaResponse(nextResponse)) {
-      const mfaCodeIn = yield {
-        code: "SMS_MFA_REQUIRED",
-        hint: nextResponse.ChallengeParameters.CODE_DELIVERY_DESTINATION,
-      };
+      const session = nextResponse.Session;
+      let valid = false;
+      let hint = nextResponse.ChallengeParameters.CODE_DELIVERY_DESTINATION;
 
-      if (typeof mfaCodeIn !== "string") {
-        throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
+      while (!valid) {
+        const mfaCodeIn = yield {
+          code: "SMS_MFA_REQUIRED",
+          hint,
+        };
+
+        try {
+          if (typeof mfaCodeIn !== "string") {
+            throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
+          }
+
+          const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
+
+          if (!mfaCode || mfaCode.length !== 6) {
+            throw new SRPError(
+              `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
+              401,
+              "MFA",
+              { mfaCode, mfaCodeIn }
+            );
+          }
+
+          nextResponse = await respondSmsMfa({
+            region,
+            clientId,
+            challengeResponses: {
+              mfaCode,
+              username: responseA.ChallengeParameters.USERNAME,
+              deviceKey: device?.key,
+            },
+            session,
+            debug,
+          });
+        } catch (e) {
+          // Why would this error be different than the TOTP one above?
+          // Because Cognito sucks, that's why.
+          // They can't even keep the punctuation consistent!
+          if (e.message !== "Invalid code or auth state for the user") {
+            throw e;
+          }
+          hint = "Invalid code or auth state for the user";
+          // pass
+        }
       }
 
-      const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
-
-      if (!mfaCode || mfaCode.length !== 6) {
-        throw new SRPError(
-          `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
-          401,
-          "MFA",
-          { mfaCode, mfaCodeIn }
-        );
+      if (guardSmsMfaResponse(nextResponse)) {
+        throw new Error(`this can't happen but fixes the types`); // hubris
       }
-
-      nextResponse = await respondSmsMfa({
-        region,
-        clientId,
-        challengeResponses: {
-          mfaCode,
-          username: responseA.ChallengeParameters.USERNAME,
-          deviceKey: device?.key,
-        },
-        session: nextResponse.Session,
-        debug,
-      });
     }
 
     if (guardDeviceChallengeResponse(nextResponse)) {
