@@ -93,7 +93,7 @@ const callCognitoNode: TCallCognito = async ({
 
         im.on("end", () => {
           try {
-            const parsed = JSON.parse(responseData);
+            const parsed = responseData ? JSON.parse(responseData) : undefined;
             if (responseCode && responseCode >= 200 && responseCode < 300) {
               resolve(parsed);
             }

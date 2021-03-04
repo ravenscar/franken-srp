@@ -141,4 +141,11 @@ type TCognitoFetchArgs = { debug?: (trace: any) => void } & (
         AccessToken: string;
       };
     }
+  | {
+      operation: "ForgetDevice";
+      args: {
+        AccessToken: string;
+        DeviceKey: string;
+      };
+    }
 );

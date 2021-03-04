@@ -266,4 +266,26 @@ export const poolSetups: TPoolSetup[] = [
     clientProps: {},
     hints: ["MFA_ENABLED", "CUSTOM"],
   },
+  {
+    name: "CustomDeleteDeviceRefresh",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["DEVICES_OPTIONAL", "CUSTOM"],
+  },
+  {
+    name: "CustomDeleteDeviceLogin",
+    poolProps: {},
+    CfnUserPoolProps: {
+      deviceConfiguration: {
+        deviceOnlyRememberedOnUserPrompt: true,
+      },
+    },
+    clientProps: {},
+    hints: ["DEVICES_OPTIONAL", "CUSTOM"],
+  },
 ];

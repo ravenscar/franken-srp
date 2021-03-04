@@ -1,6 +1,7 @@
 import { getTotp } from "minimal-cognito-totp";
 
 import { srpLogin, refresh, TAuthStep } from "../";
+import { cognitoFetch } from "../cognito/cognito-fetch";
 
 import { poolSetups, TEMP_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
@@ -337,4 +338,141 @@ it("can fail mfa once and still login", async () => {
   expect(authResult.tokens.accessToken).toBeDefined();
   expect(authResult.tokens.idToken).toBeDefined();
   expect(authResult.tokens.refreshToken).toBeDefined();
+});
+
+it("can't refresh once device is forgotten", async () => {
+  const setup = poolSetups.find(
+    (ps) =>
+      ps.hints.includes("CUSTOM") && ps.name === "CustomDeleteDeviceRefresh"
+  );
+
+  if (!setup) {
+    throw new Error("could not find setup");
+  }
+
+  const { poolId, region, clientId, username, password } = await getConfig(
+    setup.name
+  );
+
+  const login = srpLogin({
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: setup.hints.includes("RESET_PW_NEEDED")
+      ? TEMP_PASSWORD
+      : password,
+    device: undefined,
+    autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
+    debugTracing: false,
+  });
+
+  let response = await login.next();
+
+  expectResult(response.value, "TOKENS");
+
+  expect(response.value.response).toBeDefined();
+  const authResult = response.value.response!;
+
+  expect(authResult.tokens.accessToken).toBeDefined();
+  expect(authResult.tokens.idToken).toBeDefined();
+  expect(authResult.tokens.refreshToken).toBeDefined();
+
+  expect(authResult.newDevice).toBeDefined();
+  expect(authResult.newDevice!.key).toBeDefined();
+  expect(authResult.newDevice!.password).toBeDefined();
+  expect(authResult.newDevice!.groupKey).toBeDefined();
+
+  await cognitoFetch({
+    operation: "ForgetDevice",
+    region,
+    args: {
+      AccessToken: authResult.tokens.accessToken,
+      DeviceKey: authResult.newDevice!.key,
+    },
+  });
+
+  expect(
+    refresh({
+      region,
+      clientId,
+      refreshToken: authResult.tokens.refreshToken,
+      deviceKey: authResult.newDevice!.key,
+    })
+  ).rejects.toThrow("Invalid Refresh Token");
+});
+
+fit("can't login with device once it's forgotten", async () => {
+  const setup = poolSetups.find(
+    (ps) => ps.hints.includes("CUSTOM") && ps.name === "CustomDeleteDeviceLogin"
+  );
+
+  if (!setup) {
+    throw new Error("could not find setup");
+  }
+
+  const { poolId, region, clientId, username, password } = await getConfig(
+    setup.name
+  );
+
+  const login = srpLogin({
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: setup.hints.includes("RESET_PW_NEEDED")
+      ? TEMP_PASSWORD
+      : password,
+    device: undefined,
+    autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
+    debugTracing: false,
+  });
+
+  let response = await login.next();
+
+  expectResult(response.value, "TOKENS");
+
+  expect(response.value.response).toBeDefined();
+  const authResult = response.value.response!;
+
+  expect(authResult.tokens.accessToken).toBeDefined();
+  expect(authResult.tokens.idToken).toBeDefined();
+  expect(authResult.tokens.refreshToken).toBeDefined();
+
+  expect(authResult.newDevice).toBeDefined();
+  expect(authResult.newDevice!.key).toBeDefined();
+  expect(authResult.newDevice!.password).toBeDefined();
+  expect(authResult.newDevice!.groupKey).toBeDefined();
+
+  await cognitoFetch({
+    operation: "ForgetDevice",
+    region,
+    args: {
+      AccessToken: authResult.tokens.accessToken,
+      DeviceKey: authResult.newDevice!.key,
+    },
+  });
+
+  const loginAgain = srpLogin({
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: password,
+    device: {
+      key: authResult.newDevice!.key,
+      groupKey: authResult.newDevice!.groupKey,
+      password: authResult.newDevice!.password!,
+    },
+    autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
+  });
+
+  let responseAgain = await loginAgain.next();
+
+  expectResult(responseAgain.value, "ERROR");
+  expect(responseAgain.value.error).toBeDefined();
+  expect(responseAgain.value.error!.message).toMatch("Device does not exist.");
 });
