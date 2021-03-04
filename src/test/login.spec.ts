@@ -1,6 +1,7 @@
 import { getTotp } from "minimal-cognito-totp";
 
 import { srpLogin, refresh, TAuthStep } from "../";
+import { cognitoFetch } from "../cognito/cognito-fetch";
 
 import { poolSetups, TEMP_PASSWORD } from "./poolSetups";
 import { getConfigByName } from "./poolHelper";
@@ -337,4 +338,66 @@ it("can fail mfa once and still login", async () => {
   expect(authResult.tokens.accessToken).toBeDefined();
   expect(authResult.tokens.idToken).toBeDefined();
   expect(authResult.tokens.refreshToken).toBeDefined();
+});
+
+it("can't refresh once device is deleted", async () => {
+  const setup = poolSetups.find(
+    (ps) => ps.hints.includes("CUSTOM") && ps.name === "CustomDeleteDevice"
+  );
+
+  if (!setup) {
+    throw new Error("could not find setup");
+  }
+
+  const { poolId, region, clientId, username, password } = await getConfig(
+    setup.name
+  );
+
+  const login = srpLogin({
+    region,
+    clientId,
+    userPoolId: poolId,
+    username: username,
+    password: setup.hints.includes("RESET_PW_NEEDED")
+      ? TEMP_PASSWORD
+      : password,
+    device: undefined,
+    autoConfirmDevice: true,
+    autoRememberDevice: "remembered",
+    debugTracing: false,
+  });
+
+  let response = await login.next();
+
+  expectResult(response.value, "TOKENS");
+
+  expect(response.value.response).toBeDefined();
+  const authResult = response.value.response!;
+
+  expect(authResult.tokens.accessToken).toBeDefined();
+  expect(authResult.tokens.idToken).toBeDefined();
+  expect(authResult.tokens.refreshToken).toBeDefined();
+
+  expect(authResult.newDevice).toBeDefined();
+  expect(authResult.newDevice!.key).toBeDefined();
+  expect(authResult.newDevice!.password).toBeDefined();
+  expect(authResult.newDevice!.groupKey).toBeDefined();
+
+  const forgetResult = await cognitoFetch({
+    operation: "ForgetDevice",
+    region,
+    args: {
+      AccessToken: authResult.tokens.accessToken,
+      DeviceKey: authResult.newDevice!.key,
+    },
+  });
+
+  expect(
+    refresh({
+      region,
+      clientId,
+      refreshToken: authResult.tokens.refreshToken,
+      deviceKey: authResult.newDevice!.key,
+    })
+  ).rejects.toThrow("Invalid Refresh Token");
 });
