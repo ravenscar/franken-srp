@@ -211,12 +211,12 @@ export async function* srpLogin({
     if (guardSoftwareTokenMfaResponse(nextResponse)) {
       const session = nextResponse.Session;
       let valid = false;
-      let hint: string | undefined;
+      let errorResponse: Error | undefined;
 
       while (!valid) {
         const mfaCodeIn = yield {
           code: "SOFTWARE_MFA_REQUIRED",
-          hint,
+          error: errorResponse,
         };
 
         try {
@@ -251,8 +251,7 @@ export async function* srpLogin({
           if (e.message !== "Invalid code received for user") {
             throw e;
           }
-          hint = "Invalid code received for user";
-          // pass
+          errorResponse = e;
         }
       }
       if (guardSoftwareTokenMfaResponse(nextResponse)) {
@@ -262,12 +261,14 @@ export async function* srpLogin({
 
     if (guardSmsMfaResponse(nextResponse)) {
       const session = nextResponse.Session;
+      const hint = nextResponse.ChallengeParameters.CODE_DELIVERY_DESTINATION;
       let valid = false;
-      let hint = nextResponse.ChallengeParameters.CODE_DELIVERY_DESTINATION;
+      let errorResponse: Error | undefined;
 
       while (!valid) {
         const mfaCodeIn = yield {
           code: "SMS_MFA_REQUIRED",
+          error: errorResponse,
           hint,
         };
 
@@ -305,8 +306,7 @@ export async function* srpLogin({
           if (e.message !== "Invalid code or auth state for the user") {
             throw e;
           }
-          hint = "Invalid code or auth state for the user";
-          // pass
+          errorResponse = e;
         }
       }
 
