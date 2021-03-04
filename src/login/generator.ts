@@ -220,38 +220,37 @@ export async function* srpLogin({
         };
 
         try {
-          if (typeof mfaCodeIn !== "string") {
-            throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
-          }
-
           const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
-
-          if (!mfaCode || mfaCode.length !== 6) {
-            throw new SRPError(
+          if (typeof mfaCodeIn !== "string") {
+            errorResponse = new SRPError("Invalid MFA Code", 401, "MFA", {
+              mfaCodeIn,
+            });
+          } else if (!mfaCode || mfaCode.length !== 6) {
+            errorResponse = new SRPError(
               `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
               401,
               "MFA",
               { mfaCode, mfaCodeIn }
             );
+          } else {
+            nextResponse = await respondSoftwareTokenMfa({
+              region,
+              clientId,
+              challengeResponses: {
+                mfaCode,
+                username: responseA.ChallengeParameters.USERNAME,
+                deviceKey: device?.key,
+              },
+              session,
+              debug,
+            });
+            valid = true;
           }
-
-          nextResponse = await respondSoftwareTokenMfa({
-            region,
-            clientId,
-            challengeResponses: {
-              mfaCode,
-              username: responseA.ChallengeParameters.USERNAME,
-              deviceKey: device?.key,
-            },
-            session,
-            debug,
-          });
-          valid = true;
         } catch (e) {
           if (e.message !== "Invalid code received for user") {
             throw e;
           }
-          errorResponse = e;
+          errorResponse = new SRPError("Incorrect MFA Code", 401, "MFA", { e });
         }
       }
       if (guardSoftwareTokenMfaResponse(nextResponse)) {
@@ -273,32 +272,32 @@ export async function* srpLogin({
         };
 
         try {
-          if (typeof mfaCodeIn !== "string") {
-            throw new SRPError("Invalid MFA Code", 401, "MFA", { mfaCodeIn });
-          }
-
           const mfaCode = mfaCodeIn.match(/^[0-9]+$/)?.[0];
-
-          if (!mfaCode || mfaCode.length !== 6) {
-            throw new SRPError(
+          if (typeof mfaCodeIn !== "string") {
+            errorResponse = new SRPError("Invalid MFA Code", 401, "MFA", {
+              mfaCodeIn,
+            });
+          } else if (!mfaCode || mfaCode.length !== 6) {
+            errorResponse = new SRPError(
               `Expected 6 digit MFA code, received: ${mfaCodeIn}`,
               401,
               "MFA",
               { mfaCode, mfaCodeIn }
             );
+          } else {
+            nextResponse = await respondSmsMfa({
+              region,
+              clientId,
+              challengeResponses: {
+                mfaCode,
+                username: responseA.ChallengeParameters.USERNAME,
+                deviceKey: device?.key,
+              },
+              session,
+              debug,
+            });
+            valid = true;
           }
-
-          nextResponse = await respondSmsMfa({
-            region,
-            clientId,
-            challengeResponses: {
-              mfaCode,
-              username: responseA.ChallengeParameters.USERNAME,
-              deviceKey: device?.key,
-            },
-            session,
-            debug,
-          });
         } catch (e) {
           // Why would this error be different than the TOTP one above?
           // Because Cognito sucks, that's why.
@@ -306,7 +305,7 @@ export async function* srpLogin({
           if (e.message !== "Invalid code or auth state for the user") {
             throw e;
           }
-          errorResponse = e;
+          errorResponse = new SRPError("Incorrect MFA Code", 401, "MFA", { e });
         }
       }
 
