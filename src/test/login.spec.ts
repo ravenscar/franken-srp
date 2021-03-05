@@ -323,9 +323,7 @@ it("can fail mfa once and still login", async () => {
   expectResult(response.value, "SOFTWARE_MFA_REQUIRED");
   expect(response.done).toEqual(false);
   expect(response.value.error).toBeDefined();
-  expect(response.value.error?.message).toMatch(
-    "Invalid code received for user"
-  );
+  expect(response.value.error?.message).toMatch("Incorrect MFA Code");
 
   response = await login.next(getTotp(secretCode!)!);
   expect(response.done).toEqual(true);
