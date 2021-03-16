@@ -8,9 +8,56 @@ import {
   getPoolRegionSlug,
 } from "../../poolSetups";
 
+const poolDefaults = {
+  signInAliases: {
+    email: true,
+    username: false,
+    phone: false,
+    preferredUsername: false,
+  },
+  signInCaseSensitive: false,
+  passwordPolicy: {
+    minLength: 8,
+    requireLowercase: true,
+    requireUppercase: true,
+    requireDigits: true,
+    requireSymbols: true,
+    tempPasswordValidity: cdk.Duration.days(7),
+  },
+  selfSignUpEnabled: false,
+  accountRecovery: cognito.AccountRecovery.NONE,
+  autoVerify: {
+    email: false,
+    phone: false,
+  },
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+};
+
+const clientDefaults = {
+  refreshTokenValidity: cdk.Duration.days(365),
+  accessTokenValidity: cdk.Duration.hours(1),
+  idTokenValidity: cdk.Duration.hours(1),
+  generateSecret: false,
+  authFlows: {
+    adminUserPassword: false,
+    custom: false,
+    userPassword: false,
+    userSrp: true,
+  },
+  preventUserExistenceErrors: true,
+  disableOAuth: true,
+  writeAttributes: new cognito.ClientAttributes().withStandardAttributes({
+    nickname: true,
+  }),
+};
+
 const rollPool = (construct: cdk.Stack, setup: TPoolSetup) => {
-  const pool = new cognito.UserPool(construct, setup.name, setup.poolProps);
+  const pool = new cognito.UserPool(construct, setup.name, {
+    ...poolDefaults,
+    ...setup.poolProps,
+  });
   const client = new cognito.UserPoolClient(construct, `${setup.name}-client`, {
+    ...clientDefaults,
     ...setup.clientProps,
     userPool: pool,
   });

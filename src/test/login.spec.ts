@@ -401,7 +401,7 @@ it("can't refresh once device is forgotten", async () => {
   ).rejects.toThrow("Invalid Refresh Token");
 });
 
-fit("can't login with device once it's forgotten", async () => {
+it("can't login with device once it's forgotten", async () => {
   const setup = poolSetups.find(
     (ps) => ps.hints.includes("CUSTOM") && ps.name === "CustomDeleteDeviceLogin"
   );

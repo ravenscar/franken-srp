@@ -61,7 +61,7 @@ const createUser = async (
   region: string
 ): Promise<TUserSecrets> => {
   const cisp = new CognitoIdentityServiceProvider({ region });
-  const name = v4();
+  const name = `${v4()}@fakemail.com`;
 
   await cisp
     .adminCreateUser({
