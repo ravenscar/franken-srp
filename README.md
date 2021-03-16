@@ -12,7 +12,7 @@ Install with npm
 Use node or webpack.
 
 Login
-```
+```TypeScript
 const { srpLogin } = require("franken-srp");
 
 const poolParams = {
@@ -39,7 +39,7 @@ const doLogin = async (username, password) => {
 doLogin("jeff@amazon.com", "hunter2").then(console.log).catch(console.warn);
 ```
 If the login is successful you'll see something like:
-```
+```TypeScript
 {
   username: 'jeff@amazon.com',
   tokens: {
@@ -53,7 +53,7 @@ If the login is successful you'll see something like:
 }
 ```
 Refresh
-```
+```TypeScript
 const { refresh } = require("franken-srp");
 
 const poolParams = {
@@ -71,7 +71,7 @@ refresh({
 
 ```
 If the refresh is successful you'll see something like:
-```
+```TypeScript
 {
   tokenType: 'Bearer',
   expiresIn: 3600,
@@ -91,7 +91,7 @@ It is important to understand that with the above you also lose things like the 
 ### srpLogin
 `async function* srpLogin(TSrpLoginParams) => TSrpLoginResponse` 
 
-```
+```TypeScript
 type TSrpLoginParams = {
   region: string; // aws region of user pool (e.g. "ap-southeast-2")
   userPoolId: string; // full user pool ID (e.g. ap-southeast-2_123456789)
@@ -112,7 +112,7 @@ If devices are not enabled in the user pool `device`, `autoConfirmDevice` and `a
 
 If you are using devices and have not provided a device, make sure to save the key, groupKey, and password as they will needed if you plan to reuse the device on a subsequent login. You will need the key for refresh functionality.
 
-```
+```TypeScript
 type TSrpLoginResponse = AsyncGenerator<TAuthStep, TAuthStep, string>;
 
 type TAuthStep = {
@@ -146,7 +146,7 @@ type TAuthResponse = {
 `srpLogin` returns an async generator of type `TSrpLoginResponse` which returns and yields `TAuthStep` on each `next()`. If a parameter is passed to `next()` (for MFA or new password) it will be a `string`.
 
 In practice this means that when calling `next()` a promise will be returned which will resolve to an iterator result:
-```
+```TypeScript
 {
   done: boolean,
   value: TAuthStep
@@ -154,7 +154,7 @@ In practice this means that when calling `next()` a promise will be returned whi
 ```
 `value.code` can be inspected and if it is `TOKENS` then the tokens (and other info) will be returned in `value.response`. In the case the code is `SMS_MFA_REQUIRED`, `SOFTWARE_MFA_REQUIRED`, or `NEW_PASSWORD_REQUIRED` then the value must be passed to the subsequent next call, e.g.
 
-```
+```TypeScript
 login.next("MyNewPassword")
 ```
 
@@ -163,7 +163,7 @@ The `value.hint` field may be present when using SMS MFA, it may contain a `stri
 
 `async function refresh(TInitiateRefreshTokenParams) => Promise<TInitiateRefreshTokenResponse>`
 
-```
+```TypeScript
 type TInitiateRefreshTokenParams = {
   region: string;
   clientId: string;
@@ -172,7 +172,7 @@ type TInitiateRefreshTokenParams = {
 };
 ```
 When devices are enabled in the user pool (optional or not) then a device key must be passed to refresh or it will fail. You also must ensure that the device has been confirmed prior to calling refresh, you can do this by setting `autoConfirmDevice: true` in srpLogin (recommended) or by confirming the device later. This is irrespective of whether or not the device has been remembered.
-```
+```TypeScript
 type TInitiateRefreshTokenResponse = {
   tokenType: string;
   expiresIn: number;
@@ -184,7 +184,7 @@ type TInitiateRefreshTokenResponse = {
 `async function confirmDevice(TConfirmDeviceParams) => TConfirmDeviceResponse`
 
 If you do not have `autoConfirmDevice: true` in srpLogin you can manually confirm the device by calling `confirmDevice`. I don't know why you would do this but Cognito splits this out, so there you are.
-```
+```TypeScript
 type TConfirmDeviceParams = {
   accessToken: string;
   region: string;
@@ -195,7 +195,7 @@ type TConfirmDeviceParams = {
 };
 ```
 If devices are optional on the user pool but you want to automatically remember this one (perhaps it's a phone app) then you can set `autoRememberDevice` to true. If this is not set then you will have to manually call the AWS endpoint to confirm a device.
-```
+```TypeScript
 type TConfirmDeviceResponse = {
   deviceKey: string;
   deviceGroupKey: string;
@@ -241,4 +241,4 @@ Honestly, if your standards are such that you are able to accept the Hosted UI t
 
 When we first looked at [Amplify](https://github.com/aws-amplify/amplify-js) it has 400 open issues, at the time of writing this, not too much later, it has over 700. I had several Github issues open on it and its [predecessor](https://github.com/amazon-archives/amazon-cognito-auth-js) in addition to some AWS enterprise support tickets and did not feel like they were likely to be solved any time soon. After looking at the codebase it became clear that the quality of the code was not something we looked forward to be tied to long term.
 
-I feel there is a very narrow set of applications where I would feel comfortable recommending Amplify, if you're not doing a high school project I expect you would fall outside this set. I hope this changes in the future and more development time is allocated to it so the project an match the marketing promises.
+I feel there is a very narrow set of applications where I would feel comfortable recommending Amplify, if you're not doing a high school project I expect you would fall outside this set. I hope this changes in the future and more development time is allocated to it so the project can match the marketing promises.
