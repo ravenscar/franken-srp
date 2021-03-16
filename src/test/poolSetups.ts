@@ -58,7 +58,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitMfaOptionalAndOff",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {},
     clientProps: {},
@@ -68,7 +68,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitMfaOptionalAndOn",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {},
     clientProps: {},
@@ -78,7 +78,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitMfaOptionalAndOnChangePass",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {},
     clientProps: {},
@@ -143,7 +143,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitOptionalDevicesAndMfa",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -157,7 +157,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitRememberDevicesAndMfa",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -171,7 +171,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitRememberDevicesAndMfaChangePass",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -185,7 +185,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitOptionalDevicesAndMfaNotRememberedSkipKnown",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -205,7 +205,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitOptionalDevicesAndMfaSkipRememberedSkipKnown",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -225,7 +225,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitOptionalDevicesAndMfaSkipKnown",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -245,7 +245,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "FitRememberDevicesAndMfaSkipKnown",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {
       deviceConfiguration: {
@@ -260,7 +260,7 @@ export const poolSetups: TPoolSetup[] = [
     name: "CustomRetryMFA",
     poolProps: {
       mfa: Mfa.OPTIONAL,
-      mfaSecondFactor: { sms: false, otp: true },
+      mfaSecondFactor: { sms: true, otp: true },
     },
     CfnUserPoolProps: {},
     clientProps: {},
