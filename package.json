@@ -11,6 +11,7 @@
     "test": "jest",
     "cdktest": "jest src/test/cdk",
     "cdkdeploy": "cd src/test/cdk && cdk deploy --outputs-file cfn_out.json",
+    "cdkdestroy": "cd src/test/cdk && cdk destroy",
     "createTestUsers": "cd src/test && ts-node createTestUsers > test_users_out.json"
   },
   "repository": {
