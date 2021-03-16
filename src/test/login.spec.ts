@@ -254,7 +254,9 @@ it("fails login with fatal error if bad username", async () => {
 
   expect(result.value.code).toBe("ERROR");
   expect(result.value.error).toBeDefined();
-  expect(result.value.error!.message).toMatch("User does not exist");
+  expect(result.value.error!.message).toMatch(
+    "Incorrect username or password."
+  ); // "User does not exist" if client's settings are { preventUserExistenceErrors : false }
 });
 
 it("fails login with fatal error if bad password", async () => {
