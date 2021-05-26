@@ -302,7 +302,7 @@ export async function* srpLogin({
           // Why would this error be different than the TOTP one above?
           // Because Cognito sucks, that's why.
           // They can't even keep the punctuation consistent!
-          if (e.message !== "Invalid code or auth state for the user") {
+          if (e.message !== "Invalid code or auth state for the user.") {
             throw e;
           }
           errorResponse = new SRPError("Incorrect MFA Code", 401, "MFA", { e });
